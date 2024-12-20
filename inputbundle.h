@@ -1,6 +1,9 @@
 #pragma once
 
-struct InputBundle {
-	bool w, a, s, d;
+#include "helperinclude.h"
 
+struct InputBundle {
+	bool w, a, s, d, q, e;
+	vec2 mousePos;
+	InputBundle();
 };

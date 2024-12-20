@@ -9,11 +9,15 @@ private:
 	GLuint vaoHandle;
 
 	// TODO: temp remove
-	Shader shader;
 	Quadrangle q;
 public:
+	static ivec2 screenDimensions;
+
 	MyGL();
 	~MyGL();
 	void initializeGL();
 	void render();
+
+	// TODO: temp remove
+	Shader shader;
 };

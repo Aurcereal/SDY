@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "mathconstants.h"
+
 #define uPtr std::unique_ptr
 #define mkU std::make_unique
 

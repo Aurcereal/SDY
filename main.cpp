@@ -3,15 +3,30 @@
 #include <GLFW/glfw3.h>
 
 #include "mygl.h"
+#include "game.h"
+#include "inputbundle.h"
+
+InputBundle input;
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+	MyGL::screenDimensions = ivec2(width, height);
 }
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
+	input.w = glfwGetKey(window, GLFW_KEY_W);
+	input.a = glfwGetKey(window, GLFW_KEY_A);
+	input.s = glfwGetKey(window, GLFW_KEY_S);
+	input.d = glfwGetKey(window, GLFW_KEY_D);
+	input.q = glfwGetKey(window, GLFW_KEY_Q);
+	input.e = glfwGetKey(window, GLFW_KEY_E);
+}
+
+void mouseCallback(GLFWwindow *window, double mouseX, double mouseY) {
+	input.mousePos = vec2(mouseX, mouseY);
 }
 
 int main() {
@@ -32,17 +47,32 @@ int main() {
 	gladLoadGL();
 
 	glViewport(0, 0, 800, 800);
+	MyGL::screenDimensions = ivec2(800);
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouseCallback);
 
 	//
 	MyGL gl = MyGL();
 	gl.initializeGL();
-	
+
+	//
+	Game game = Game(&input, &gl.shader);
+	game.init();
+	float lastTime = 0.0f;
+	float currTime = 0.0f;
+
 	while (!glfwWindowShouldClose(window)) {
 		// Input
 		processInput(window);
 
+		// Update input
+		currTime = glfwGetTime();
+		game.update(currTime - lastTime);
+		lastTime = currTime;
+		
 		// Render
 		gl.render();
 

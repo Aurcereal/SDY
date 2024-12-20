@@ -1,5 +1,7 @@
 #include "mygl.h"
 
+ivec2 MyGL::screenDimensions = ivec2(0);
+
 MyGL::MyGL() : vaoHandle() {}
 
 MyGL::~MyGL() {
@@ -10,7 +12,7 @@ void MyGL::initializeGL() {
 	glGenVertexArrays(1, &vaoHandle);
 	glBindVertexArray(vaoHandle);
 
-	shader.createAndCompileShaderProgram("default.vert", "default.frag");
+	shader.createAndCompileShaderProgram("passthrough.vert.glsl", "tempmain.frag.glsl");
 	q.createVBOData();
 }
 

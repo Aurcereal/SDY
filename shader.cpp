@@ -6,6 +6,8 @@
 #include <fstream>
 #include <sstream>
 
+Shader* Shader::currShader = nullptr;
+
 Shader::Shader() {}
 
 void Shader::createAndCompileShaderProgram(string vertFilePath, string fragFilePath) {
@@ -109,6 +111,8 @@ void Shader::parseShaderForVariables(const string &vertSource, const string &fra
 }
 
 void Shader::use() {
+	if (currShader == this) return;
+	currShader = this;
 	glUseProgram(programHandle);
 }
 
@@ -138,4 +142,30 @@ void Shader::printGLErrorLog() {
 	if (error != GL_NO_ERROR) {
 		cout << "OpenGL error " << error << endl;
 	}
+}
+
+void Shader::uniformFloat(const string& name, float f) {
+	assert(currShader == this);
+	assert(uniforms.count(name) != 0);
+	glUniform1f(uniforms[name], f);
+}
+void Shader::uniformVec2(const string& name, vec2 v) {
+	assert(currShader == this);
+	assert(uniforms.count(name) != 0);
+	glUniform2f(uniforms[name], v.x, v.y);
+}
+void Shader::uniformVec3(const string& name, vec3 v) {
+	assert(currShader == this);
+	assert(uniforms.count(name) != 0);
+	glUniform3f(uniforms[name], v.x, v.y, v.z);
+}
+void Shader::uniformVec4(const string& name, vec4 v) {
+	assert(currShader == this);
+	assert(uniforms.count(name) != 0);
+	glUniform4f(uniforms[name], v.x, v.y, v.z, v.w);
+}
+void Shader::uniformVec2i(const string& name, ivec2 v) {
+	assert(currShader == this);
+	assert(uniforms.count(name) != 0);
+	glUniform2i(uniforms[name], v.x, v.y);
 }
