@@ -6,11 +6,16 @@
 
 class Game {
 private:
+	GLFWwindow* window;
+
+	bool cameraEnabled;
+
+	InputBundle* input;
 	Camera camera;
 	MyGL gl;
 	ObjectManager objectManager;
 public:
-	Game(InputBundle*);
+	Game(GLFWwindow*, InputBundle*);
 
 	void init();
 	void update(float dt);

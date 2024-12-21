@@ -1,6 +1,6 @@
 #include "game.h"
 
-Game::Game(InputBundle* input) : camera(input), gl() {}
+Game::Game(GLFWwindow* window, InputBundle* input) : window(window), cameraEnabled(true), input(input), camera(input), gl() {}
 
 void Game::init() {
 	gl.initializeGL();
@@ -11,7 +11,16 @@ void Game::init() {
 }
 
 void Game::update(float dt) {
-	camera.update(dt);
+	if (input->f3Down) {
+		cameraEnabled = !cameraEnabled;
+		if(cameraEnabled)
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		else
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+
+	if(cameraEnabled)
+		camera.update(dt);
 
 	gl.shader.uniformVec2i("u_ScreenDimensions", MyGL::screenDimensions);
 	camera.updateUniforms(&gl.shader);

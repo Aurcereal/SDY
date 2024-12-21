@@ -17,12 +17,7 @@ void processInput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
-	input.w = glfwGetKey(window, GLFW_KEY_W);
-	input.a = glfwGetKey(window, GLFW_KEY_A);
-	input.s = glfwGetKey(window, GLFW_KEY_S);
-	input.d = glfwGetKey(window, GLFW_KEY_D);
-	input.q = glfwGetKey(window, GLFW_KEY_Q);
-	input.e = glfwGetKey(window, GLFW_KEY_E);
+	input.update(window);
 }
 
 void mouseCallback(GLFWwindow *window, double mouseX, double mouseY) {
@@ -54,8 +49,16 @@ int main() {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouseCallback);
 
+	// Init ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
 	//
-	Game game = Game(&input);
+	Game game = Game(window, &input);
 	game.init();
 	float lastTime = 0.0f;
 	float currTime = 0.0f;
@@ -76,6 +79,10 @@ int main() {
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
