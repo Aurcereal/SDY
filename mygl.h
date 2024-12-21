@@ -1,7 +1,7 @@
 #pragma once
 
 #include "helperinclude.h"
-#include "shader.h"
+#include "sdyshader.h"
 #include "quadrangle.h"
 
 class MyGL {
@@ -19,5 +19,5 @@ public:
 	void render();
 
 	// TODO: temp remove
-	Shader shader;
+	SDYShader shader;
 };

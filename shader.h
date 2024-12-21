@@ -6,7 +6,7 @@
 #include "drawable.h"
 
 class Shader {
-private:
+protected:
 	static Shader* currShader;
 
 	GLuint programHandle;
@@ -28,5 +28,6 @@ public:
 	void uniformVec2(const string& name, vec2 v);
 	void uniformVec3(const string& name, vec3 v);
 	void uniformVec4(const string& name, vec4 v);
+	void uniformInt(const string& name, int i);
 	void uniformVec2i(const string& name, ivec2 v);
 };

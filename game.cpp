@@ -1,14 +1,22 @@
 #include "game.h"
 
-Game::Game(InputBundle* input, Shader* shader) : camera(input), shader(shader) {}
+Game::Game(InputBundle* input) : camera(input), gl() {}
 
 void Game::init() {
-	camera.setInitialUniforms(shader);
+	gl.initializeGL();
+
+	camera.setInitialUniforms(&gl.shader);
+
+	objectManager.addSphere(&gl.shader, vec4(0.0f, 10.0f, 0.0f, 1.0f));
 }
 
 void Game::update(float dt) {
 	camera.update(dt);
 
-	shader->uniformVec2i("u_ScreenDimensions", MyGL::screenDimensions);
-	camera.updateUniforms(shader);
+	gl.shader.uniformVec2i("u_ScreenDimensions", MyGL::screenDimensions);
+	camera.updateUniforms(&gl.shader);
+}
+
+void Game::render() {
+	gl.render();
 }

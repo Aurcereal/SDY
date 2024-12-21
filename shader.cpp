@@ -164,6 +164,11 @@ void Shader::uniformVec4(const string& name, vec4 v) {
 	assert(uniforms.count(name) != 0);
 	glUniform4f(uniforms[name], v.x, v.y, v.z, v.w);
 }
+void Shader::uniformInt(const string& name, int i) {
+	assert(currShader == this);
+	assert(uniforms.count(name) != 0);
+	glUniform1i(uniforms[name], i);
+}
 void Shader::uniformVec2i(const string& name, ivec2 v) {
 	assert(currShader == this);
 	assert(uniforms.count(name) != 0);

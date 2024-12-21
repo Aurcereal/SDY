@@ -2,14 +2,17 @@
 
 #include "camera.h"
 #include "mygl.h"
+#include "objectmanager.h"
 
 class Game {
 private:
 	Camera camera;
-	Shader* shader;
+	MyGL gl;
+	ObjectManager objectManager;
 public:
-	Game(InputBundle*, Shader*);
+	Game(InputBundle*);
 
 	void init();
 	void update(float dt);
+	void render();
 };

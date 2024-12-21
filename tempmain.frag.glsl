@@ -28,8 +28,24 @@ uniform ivec2 u_ScreenDimensions;
 #define SDEPS 0.0005
 #define NORMEPS 0.0005
 
+struct Sphere {
+	//vec3 pos;
+	//float r;
+	vec4 data; // test out alignment and stuff by i nterchanging vec3 and float
+};
+
+layout (std140) uniform SpheresBlock {
+	vec4 spheres[256];
+} u_Spheres;
+uniform int u_SphereCount;
+
 float sdf(vec3 p) {
-	return length(p-vec3(0.0, 0.0, 5.0)) - 1.0;
+	float d = length(p-vec3(0.0, 0.0, 5.0)) - 1.0;
+	for(int i=0; i<u_SphereCount; i++) {
+		//d = min(d, length(p-vec3(0.0,4.0,0.0))-1.0);
+		d = min(d, length(p-u_Spheres.spheres[i].xyz) - u_Spheres.spheres[i].w);
+	}
+	return d;
 }
 
 float trace(vec3 ro, vec3 rd) {

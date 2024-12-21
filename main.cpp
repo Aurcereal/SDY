@@ -55,11 +55,7 @@ int main() {
 	glfwSetCursorPosCallback(window, mouseCallback);
 
 	//
-	MyGL gl = MyGL();
-	gl.initializeGL();
-
-	//
-	Game game = Game(&input, &gl.shader);
+	Game game = Game(&input);
 	game.init();
 	float lastTime = 0.0f;
 	float currTime = 0.0f;
@@ -74,7 +70,7 @@ int main() {
 		lastTime = currTime;
 		
 		// Render
-		gl.render();
+		game.render();
 
 		// Draw to Screen
 		glfwPollEvents();
