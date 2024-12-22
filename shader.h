@@ -14,6 +14,7 @@ protected:
 	dict<string, GLuint> uniforms;
 	dict<string, GLuint> attributes;
 	void parseShaderForVariables(const string &vertSource, const string &fragSource);
+	static void pasteInShaderIncludes(string* source);
 
 public:
 	Shader();

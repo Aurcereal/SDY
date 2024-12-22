@@ -1,5 +1,6 @@
 #include "camera.h"
 #include <iostream>
+#include "testsdfile.glsl"
 
 Camera::Camera(InputBundle* input) : input(input), prevMousePos(input->mousePos), lookSens(vec2(0.005f)), upBarrier(0.1f), fovY(PI * 0.5f), moveSpeed(2.0f), polarCoords(0.0f) {}
 
@@ -21,6 +22,9 @@ void Camera::update(float dt) {
 	//
 	vec4 move = vec4(vec3(int(input->d) - int(input->a), int(input->e) - int(input->q), int(input->w) - int(input->s)) * moveSpeed * dt, 0.0f);
 	position += vec3(getTransform() * move);
+
+	// temp
+	std::cout << sdSphere(position, 1.0) << std::endl;
 
 }
 

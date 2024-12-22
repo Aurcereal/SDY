@@ -39,11 +39,12 @@ layout (std140) uniform SpheresBlock {
 } u_Spheres;
 uniform int u_SphereCount;
 
+#include "testsdfile.glsl"
+
 float sdf(vec3 p) {
 	float d = length(p-vec3(0.0, 0.0, 5.0)) - 1.0;
 	for(int i=0; i<u_SphereCount; i++) {
-		//d = min(d, length(p-vec3(0.0,4.0,0.0))-1.0);
-		d = min(d, length(p-u_Spheres.spheres[i].xyz) - u_Spheres.spheres[i].w);
+		d = min(d, sdSphere(p-u_Spheres.spheres[i].xyz, u_Spheres.spheres[i].w));//min(d, length(p-u_Spheres.spheres[i].xyz) - u_Spheres.spheres[i].w);
 	}
 	return d;
 }

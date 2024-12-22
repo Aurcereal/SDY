@@ -32,6 +32,10 @@ void Shader::createAndCompileShaderProgram(string vertFilePath, string fragFileP
 		std::cout << "FAILED TO READ SHADER SOURCE >:(" << std::endl;
 	}
 
+	// Include files
+	pasteInShaderIncludes(&vertSource);
+	pasteInShaderIncludes(&fragSource);
+
 	// Compile
 	char infoLog[512];
 	int success;
@@ -75,6 +79,38 @@ void Shader::createAndCompileShaderProgram(string vertFilePath, string fragFileP
 
 	//
 	parseShaderForVariables(vertSource, fragSource);
+}
+
+void Shader::pasteInShaderIncludes(string* source) {
+	vector<string> lines;
+	split(*source, "\n", &lines);
+
+	*source = "";
+
+	for (const string& line : lines) {
+		vector<string> sub;
+		split(line, " ", &sub);
+		
+		if (sub.size() > 0 && sub[0] == "#include") {
+			string filePath = sub[1].substr(1, sub[1].length() - 2);
+
+			ifstream file;
+			file.open(filePath);
+
+			stringstream sstream;
+			sstream << file.rdbuf();
+
+			source->append(sstream.str());
+
+			file.close();
+		}
+		else {
+			source->append(line);
+		}
+		source->append("\n");
+	}
+
+	cout << *source << endl;
 }
 
 void Shader::parseShaderForVariables(const string &vertSource, const string &fragSource) {

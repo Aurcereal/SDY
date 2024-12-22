@@ -5,6 +5,7 @@
 #include "mygl.h"
 #include "game.h"
 #include "inputbundle.h"
+#include "guimanager.h"
 
 InputBundle input;
 
@@ -49,13 +50,7 @@ int main() {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouseCallback);
 
-	// Init ImGui
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
+	GUIManager::initImGui(window);
 
 	//
 	Game game = Game(window, &input);
@@ -80,9 +75,7 @@ int main() {
 		glfwSwapBuffers(window);
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	GUIManager::shutdownImGui();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
