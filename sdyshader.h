@@ -7,12 +7,11 @@ class SDYShader : public Shader {
 private:
 	uint sphereUBOHandle;
 	uint operationsUBOHandle;
-	int sphereCount;
 public:
 	SDYShader();
 	void setupObjectUBOs();
 
-	void updateSphereCount(int);
+	void uniformOperationCount(int);
 
 	void setSphere(int i, void* data);
 	void setOperation(int i, void* data);

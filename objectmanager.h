@@ -11,9 +11,12 @@ struct Sphere {
 };
 
 struct OperationNode {
+	int parentIndex;
+
 	int operationType;
-	int childIndex1;
-	int childIndex2;
+	int objectIndex;
+
+	float d;
 };
 
 struct SDYData {

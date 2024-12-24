@@ -15,11 +15,12 @@ layout (std140) uniform SpheresBlock {
 // LeafNode = (operationType = [-1...-primTypeCount], childIndex1 >= 0, childIndex2 = -1) grab children from corresponding primitive block based on operationtype
 
 struct Node { // but glsl isn't good with ints?
-	int operationType; // adjacent in mem
-	int childIndex1;
-	int childIndex2;
+	int parentIndex;
+	int operationType;
+	int objectIndex;
 };
 
 layout (std140) uniform OperationsBlock {
 	Node nodes[ELEMCOUNT]; // 16 each
 } u_Operations;
+uniform int u_OperationCount;

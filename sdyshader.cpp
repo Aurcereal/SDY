@@ -1,7 +1,7 @@
 #include "sdyshader.h"
 #include "sdydatadefines.glsl""
 
-SDYShader::SDYShader() : sphereUBOHandle(), sphereCount(0), Shader() {}
+SDYShader::SDYShader() : sphereUBOHandle(), Shader() {}
 
 void SDYShader::setupObjectUBOs() {
 	uint uboSpheresIndex = glGetUniformBlockIndex(programHandle, "SpheresBlock");
@@ -18,14 +18,12 @@ void SDYShader::setupObjectUBOs() {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, operationsUBOHandle);
 	glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * sizeof(vec4), NULL, GL_STATIC_DRAW);
 
-	//
-	updateSphereCount(sphereCount);
+	uniformOperationCount(0);
 }
 
-void SDYShader::updateSphereCount(int newSphereCount) {
-	sphereCount = newSphereCount;
+void SDYShader::uniformOperationCount(int newOperationCount) {
 	use();
-	//uniformInt("u_SphereCount", sphereCount);
+	uniformInt("u_OperationCount", newOperationCount);
 }
 
 void SDYShader::setSphere(int i, void* data) {

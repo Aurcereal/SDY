@@ -7,6 +7,8 @@
 #define PRIM_BOX 1
 
 #define OP_MIN -1
-#define OP_MAX -2
+#define OP_SMIN -2
+#define OP_MAX -3
+#define OP_SMAX -4
 
 #endif

@@ -11,11 +11,20 @@ void Game::init() {
 	objectManager.addSphere(&gl.shader, vec4(0.0f, 10.0f, 0.0f, 1.0f));
 	objectManager.addSphere(&gl.shader, vec4(4.0f, 10.0f, 0.0f, 1.0f));
 	
-	OperationNode n;
-	n.operationType = PRIM_SPHERE;
-	n.childIndex1 = 0;
-	n.childIndex2 = -1;
-	objectManager.addOperation(&gl.shader, n);
+	OperationNode n1, n2, n3;
+	n1.operationType = OP_MIN;
+	n1.parentIndex = -1;
+	n1.objectIndex = -1;
+	n2.operationType = PRIM_SPHERE;
+	n2.parentIndex = 0;
+	n2.objectIndex = 0;
+	n3.operationType = PRIM_SPHERE;
+	n3.parentIndex = 0;
+	n3.objectIndex = 1;
+	
+	objectManager.addOperation(&gl.shader, n1);
+	objectManager.addOperation(&gl.shader, n2);
+	objectManager.addOperation(&gl.shader, n3);
 }
 
 void Game::update(float dt) {

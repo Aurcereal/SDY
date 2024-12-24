@@ -27,40 +27,52 @@ uniform ivec2 u_ScreenDimensions;
 
 #include "primitives.glsl"
 
-Sphere sphereDrawStack[12]; // this can be smaller when we do bbx culling
-int sphereDrawStackSize = 0;
+float dists[ELEMCOUNT];
 
-void fillDrawStacks() {
-	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
-	int searchStack[16];
-
-	searchStack[0] = 0;
-	int stackSize = 1;
-
-	while(stackSize > 0) {
-		Node n = u_Operations.nodes[searchStack[stackSize-1]];
-		stackSize--;
-
-		if(n.operationType >= 0) {
-			// calculating all of them MAY be more efficient than branching?? whatever
-			// this is where u'd do the bounding box stuff
-			sphereDrawStack[sphereDrawStackSize] = u_Spheres.spheres[n.childIndex1];
-			sphereDrawStackSize++;
+float sdOperationStack(vec3 p) {
+	for(int i=0; i<u_OperationCount; i++) {
+		// use bit slicing operations where a bit can correspond to min or max and another bit can correpsond to smooth or not
+		if(u_Operations.nodes[i].operationType == OP_MIN || u_Operations.nodes[i].operationType == OP_SMIN) {
+			dists[i] = MAXDIST;
 		} else {
-			searchStack[stackSize] = n.childIndex1;
-			searchStack[stackSize+1] = n.childIndex2;
-			stackSize += 2;
+			dists[i] = -MAXDIST;
 		}
 	}
+
+	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
+	// for speed optimization maybe when i delete certain nodes, can 'delete' them from the array by having like an array of [n1, n2, nDead, nDead, n5] and n5 has a backoffset of -3
+	// so we know to jump -3 to get to n2, but has to be per-frag array
+	for(int i=u_OperationCount-1; i>=0; i--) {
+		Node n = u_Operations.nodes[i];
+
+		if(n.objectIndex != -1) {
+			// Leaves should only have objects, operationType should be a PRIM
+			switch(n.operationType) {
+				case PRIM_SPHERE:
+				Sphere sphere = u_Spheres.spheres[n.objectIndex];
+				dists[i] = length(p - sphere.pos) - sphere.r;
+				break;
+			}
+		}
+
+		if(n.parentIndex != -1) {
+			// Internal nodes should only have operations, operationType should be an OP
+			Node parentNode = u_Operations.nodes[n.parentIndex];
+			switch(parentNode.operationType) {
+				case OP_MIN:
+				dists[n.parentIndex] = min(dists[n.parentIndex], dists[i]);
+				break;
+			}
+		}
+	}
+
+	return dists[0];
 }
 
 float sdf(vec3 p) {
 	float d = length(p-vec3(0.0, 0.0, 5.0)) - 1.0;
 
-	for(int i=0; i<sphereDrawStackSize; i++) {
-		Sphere sphere = sphereDrawStack[i];
-		d = min(d, length(p - sphere.pos) - sphere.r);
-	}
+	d = min(d, sdOperationStack(p));
 
 	return d;
 }
@@ -91,7 +103,6 @@ vec3 render(vec2 p) {
 	vec3 ro = u_CamPos;
 	vec3 rd = mat3(u_CamRi, u_CamUp, u_CamFo) * normalize(vec3(p*tan(u_fovY*0.5)*vec2(aspect, 1.0), 1.0));
 
-	fillDrawStacks();
 	float dist = trace(ro, rd);
 
 	return shade(ro, rd, dist, dist * dot(rd, u_CamFo), normal(ro+rd*dist));
