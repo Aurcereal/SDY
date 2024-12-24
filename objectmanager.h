@@ -25,6 +25,8 @@ private:
 	vector<OperationNode> operations;
 	vector<vector<int>> childArray;
 public:
+	friend class GUIManager;
+
 	void addObject(SDYShader*, int parentIndex, SDNodeType type, void* data); // will add the data and the node
 	void addOperation(SDYShader*, int parentIndex, SDNodeType type);
 };

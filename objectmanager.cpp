@@ -17,11 +17,16 @@ void ObjectManager::addObject(SDYShader* shader, int parentIndex, SDNodeType typ
 
 void ObjectManager::addOperation(SDYShader* shader, int parentIndex, SDNodeType type) {
 	operations.push_back(OperationNode());
-	OperationNode& n = operations[operations.size() - 1];
+	childArray.push_back(vector<int>());
+	int opIndex = operations.size() - 1;
+	OperationNode& n = operations[opIndex];
 	n.parentIndex = parentIndex;
 	n.operationType = type;
 	n.objectIndex = spheres.size() - 1;
 
-	shader->setOperation(operations.size() - 1, &n);
+	assert(parentIndex < opIndex);
+	if(parentIndex != -1) childArray[parentIndex].push_back(opIndex);
+
+	shader->setOperation(opIndex, &n);
 	shader->uniformOperationCount(operations.size());
 }
