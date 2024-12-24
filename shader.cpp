@@ -99,8 +99,10 @@ void Shader::pasteInShaderIncludes(string* source) {
 
 			stringstream sstream;
 			sstream << file.rdbuf();
+			string includeSource = sstream.str();
+			pasteInShaderIncludes(&includeSource);
 
-			source->append(sstream.str());
+			source->append(includeSource);
 
 			file.close();
 		}

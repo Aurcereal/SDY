@@ -1,0 +1,4 @@
+#define MAXDIST 50.0
+#define MAXSTEPS 100
+#define SDEPS 0.0005
+#define NORMEPS 0.0005

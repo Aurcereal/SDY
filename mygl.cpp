@@ -13,7 +13,7 @@ void MyGL::initializeGL() {
 	glGenVertexArrays(1, &vaoHandle);
 	glBindVertexArray(vaoHandle);
 
-	shader.createAndCompileShaderProgram("passthrough.vert.glsl", "tempmain.frag.glsl");
+	shader.createAndCompileShaderProgram("passthrough.vert.glsl", "sdymain.frag.glsl");
 	shader.setupObjectUBOs(); //
 	q.createVBOData();
 }
