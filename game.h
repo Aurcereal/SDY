@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "mygl.h"
 #include "objectmanager.h"
+#include "guimanager.h"
 
 class Game {
 private:
@@ -14,6 +15,7 @@ private:
 	Camera camera;
 	MyGL gl;
 	ObjectManager objectManager;
+	GUIManager guiManager;
 public:
 	Game(GLFWwindow*, InputBundle*);
 

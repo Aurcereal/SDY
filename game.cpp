@@ -1,30 +1,19 @@
 #include "game.h"
 #include "sdydatadefines.glsl"
 
-Game::Game(GLFWwindow* window, InputBundle* input) : window(window), cameraEnabled(true), input(input), camera(input), gl() {}
+Game::Game(GLFWwindow* window, InputBundle* input) : window(window), cameraEnabled(true), input(input), camera(input), gl(), guiManager(&objectManager) {}
 
 void Game::init() {
 	gl.initializeGL();
 
 	camera.setInitialUniforms(&gl.shader);
 
-	objectManager.addSphere(&gl.shader, vec4(0.0f, 10.0f, 0.0f, 1.0f));
-	objectManager.addSphere(&gl.shader, vec4(4.0f, 10.0f, 0.0f, 1.0f));
-	
-	OperationNode n1, n2, n3;
-	n1.operationType = OP_MIN;
-	n1.parentIndex = -1;
-	n1.objectIndex = -1;
-	n2.operationType = PRIM_SPHERE;
-	n2.parentIndex = 0;
-	n2.objectIndex = 0;
-	n3.operationType = PRIM_SPHERE;
-	n3.parentIndex = 0;
-	n3.objectIndex = 1;
-	
-	objectManager.addOperation(&gl.shader, n1);
-	objectManager.addOperation(&gl.shader, n2);
-	objectManager.addOperation(&gl.shader, n3);
+	Sphere s1 = Sphere(vec3(0.0f, 5.0f, 0.0f), 0.5f);
+	Sphere s2 = Sphere(vec3(2.0f, 5.0f, 0.0f), 0.5f);
+
+	objectManager.addOperation(&gl.shader, -1, OP_MIN);
+	objectManager.addObject(&gl.shader, 0, PRIM_SPHERE, &s1);
+	objectManager.addObject(&gl.shader, 0, PRIM_SPHERE, &s2);
 }
 
 void Game::update(float dt) {
@@ -45,4 +34,5 @@ void Game::update(float dt) {
 
 void Game::render() {
 	gl.render();
+	guiManager.drawImGuiElements();
 }

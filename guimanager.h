@@ -1,11 +1,15 @@
 #pragma once
 
 #include "helperinclude.h"
+#include "objectmanager.h"
 
 class GUIManager {
+private:
+	ObjectManager* objectManager;
+
+	int selectedNodeIndex;
 public:
-	static void initImGui(GLFWwindow*);
-	static void beforeRenderImGuiCalls();
-	static void drawImGuiElements();
-	static void shutdownImGui();
+	GUIManager(ObjectManager*);
+	void addNode(SDNodeType type); // from drop-down add menu or smth
+	void drawImGuiElements();
 };

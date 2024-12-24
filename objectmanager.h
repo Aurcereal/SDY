@@ -7,7 +7,9 @@
 #include <array>
 
 struct Sphere {
-	vec4 data;
+	vec3 pos;
+	float r;
+	Sphere(vec3, float);
 };
 
 struct OperationNode {
@@ -15,23 +17,14 @@ struct OperationNode {
 
 	int operationType;
 	int objectIndex;
-
-	float d;
-};
-
-struct SDYData {
-	array<vec4, ELEMCOUNT> spheres;
-	array<OperationNode, ELEMCOUNT> operations;
-
-	int sphereCount;
-	int operationCount;
 };
 
 class ObjectManager {
 private:
-	uPtr<SDYData> sdyData;
+	vector<Sphere> spheres;
+	vector<OperationNode> operations;
+	vector<vector<int>> childArray;
 public:
-	ObjectManager();
-	void addSphere(SDYShader*, const vec4&); // most sd objects are very tiny so who cares copy
-	void addOperation(SDYShader*, const OperationNode&); // temp, don't add operations raw this way
+	void addObject(SDYShader*, int parentIndex, SDNodeType type, void* data); // will add the data and the node
+	void addOperation(SDYShader*, int parentIndex, SDNodeType type);
 };
