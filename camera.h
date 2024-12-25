@@ -20,7 +20,7 @@ private:
 	vec2 nearFar;
 public:
 	Camera(InputBundle*);
-	void update(float dt);
+	void update(float dt, bool cameraEnabled);
 	
 	void setInitialUniforms(Shader*);
 	void updateUniforms(Shader*);

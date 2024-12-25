@@ -4,12 +4,20 @@
 
 Camera::Camera(InputBundle* input) : input(input), prevMousePos(input->mousePos), lookSens(vec2(0.005f)), upBarrier(0.1f), fovY(PI * 0.5f), moveSpeed(2.0f), polarCoords(0.0f), nearFar(0.1f, 1000.0f) {}
 
-void Camera::update(float dt) {
+/// <summary>
+/// Call this even when not changing transform since camera needs to do maintenance stuff per frame.
+/// </summary>
+/// <param name="dt"></param>
+/// <param name="cameraEnabled"></param>
+void Camera::update(float dt, bool cameraEnabled) {
 
 	// Orientation
 	vec2 dm = (input->mousePos - prevMousePos) * vec2(1.0f, -1.0f);
 	if (prevMousePos.x == -1.0f) dm *= 0.0f; // Ignore first mouse callback
 	prevMousePos = input->mousePos;
+
+	//
+	if (!cameraEnabled) return;
 
 	polarCoords += dm * lookSens;
 	if(abs(polarCoords.y) > 0.0f) polarCoords.y = sign(polarCoords.y) * glm::min(abs(polarCoords.y), PI * 0.5f - upBarrier);

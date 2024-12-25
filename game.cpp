@@ -26,8 +26,7 @@ void Game::update(float dt) {
 		guiManager.setWidgetsActive(!cameraEnabled);
 	}
 
-	if(cameraEnabled)
-		camera.update(dt);
+	camera.update(dt, cameraEnabled);
 
 	gl.shader.uniformVec2i("u_ScreenDimensions", MyGL::screenDimensions);
 	camera.updateUniforms(&gl.shader);
