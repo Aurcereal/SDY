@@ -21,7 +21,7 @@ uniform ivec2 u_ScreenDimensions;
 ///
 
 #define PI 3.141592
-#define TAU 2.0*PI
+#define TAU (2.0*PI)
 
 #include "raymarchdefines.glsl"
 
@@ -90,7 +90,7 @@ vec3 normal(vec3 p) {
 
 vec3 shade(vec3 camPos, vec3 rd, float dist, float distAlongCam, vec3 norm) {
 	if(dist >= MAXDIST) {
-		return vec3(0.0);
+		return 1.5 * (acos(rd.y)/PI) * vec3(134.0, 206.0, 203.0)/255.0;
 	}
 
 	return norm*0.5+0.5;

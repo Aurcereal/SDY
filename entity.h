@@ -8,5 +8,6 @@ protected:
 	vec3 fo, ri, up;
 public:
 	Entity();
-	mat4 getTransform();
+	mat4 getTransform() const;
+	mat4 getInverseTransform() const;
 };

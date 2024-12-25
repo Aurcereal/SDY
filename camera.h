@@ -16,10 +16,14 @@ private:
 	float fovY;
 
 	vec3 moveSpeed;
+
+	vec2 nearFar;
 public:
 	Camera(InputBundle*);
 	void update(float dt);
 	
 	void setInitialUniforms(Shader*);
 	void updateUniforms(Shader*);
+
+	mat4 getProjectionMatrix() const;
 };

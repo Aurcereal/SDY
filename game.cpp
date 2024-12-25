@@ -23,6 +23,7 @@ void Game::update(float dt) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		else
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		guiManager.setWidgetsActive(!cameraEnabled);
 	}
 
 	if(cameraEnabled)
@@ -34,5 +35,5 @@ void Game::update(float dt) {
 
 void Game::render() {
 	gl.render();
-	guiManager.drawImGuiElements();
+	guiManager.drawImGuiElements(camera);
 }

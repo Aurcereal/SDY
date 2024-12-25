@@ -1,7 +1,8 @@
 #include "camera.h"
 #include <iostream>
+#include "mygl.h"
 
-Camera::Camera(InputBundle* input) : input(input), prevMousePos(input->mousePos), lookSens(vec2(0.005f)), upBarrier(0.1f), fovY(PI * 0.5f), moveSpeed(2.0f), polarCoords(0.0f) {}
+Camera::Camera(InputBundle* input) : input(input), prevMousePos(input->mousePos), lookSens(vec2(0.005f)), upBarrier(0.1f), fovY(PI * 0.5f), moveSpeed(2.0f), polarCoords(0.0f), nearFar(0.1f, 1000.0f) {}
 
 void Camera::update(float dt) {
 
@@ -35,4 +36,10 @@ void Camera::updateUniforms(Shader* shader) {
 	shader->uniformVec3("u_CamRi", ri);
 	shader->uniformVec3("u_CamUp", up);
 	shader->uniformVec3("u_CamFo", fo);
+}
+
+mat4 Camera::getProjectionMatrix() const {
+	float aspect = (1.0f * MyGL::screenDimensions.x) / MyGL::screenDimensions.y;
+	float mi = 1.0f / tan(fovY * 0.5f);
+	return mat4(vec4(mi / aspect, 0.0f, 0.0f, 0.0f), vec4(0.0f, mi, 0.0f, 0.0f), vec4(0.0f, 0.0f, nearFar.y/(nearFar.y-nearFar.x), 1.0f), vec4(0.0f, 0.0f, -nearFar.y*nearFar.x/(nearFar.y-nearFar.x), 0.0f));
 }
