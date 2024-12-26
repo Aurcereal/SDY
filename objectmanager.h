@@ -16,6 +16,11 @@ struct Sphere : public SDObject {
 	Sphere(mat4, float);
 };
 
+struct Box : public SDObject {
+	vec3 dim; // same idea as sphere where u could remove
+	Box(mat4, vec3);
+};
+
 struct OperationNode {
 	int parentIndex;
 
@@ -26,6 +31,8 @@ struct OperationNode {
 class ObjectManager {
 private:
 	vector<pair<Sphere, EulerEntity>> spheres;
+	vector<pair<Box, EulerEntity>> boxes;
+
 	vector<OperationNode> operations;
 	vector<vector<int>> childArray;
 
@@ -39,8 +46,10 @@ public:
 
 	friend class GUIManager;
 
-	void addSphere(int parentIndex, vec3 pos, vec3 euler, float r); // will add the data and the node
-	void addOperation(int parentIndex, SDNodeType type);
+	void addSphere(int parentIndex, vec3 pos, vec3 euler, float r);
+	void addBox(int parentIndex, vec3 pos, vec3 euler, vec3 dim);
+
+	void addOperation(int parentIndex, SDNodeType type, int objectIndex = -1);
 
 	static ivec2 getStructSize(SDNodeType);
 

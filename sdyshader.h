@@ -6,7 +6,7 @@
 // delete this comment please actually: my idea rn is that this class doesn't know much and has low level interface for objectmanager to use
 class SDYShader : public Shader {
 private:
-	uint sphereUBOHandle;
+	dict<SDNodeType, uint> objectUBOHandles;
 	uint operationsUBOHandle;
 public:
 	SDYShader();

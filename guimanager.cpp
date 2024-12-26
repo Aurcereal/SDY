@@ -54,16 +54,20 @@ void GUIManager::addObject(SDNodeType type) {
 	case PRIM_SPHERE:
 		objectManager->addSphere(parentIndex, vec3(0.0f), vec3(0.0f), 1.0f);
 		break;
+	case PRIM_BOX:
+		objectManager->addBox(parentIndex, vec3(0.0f), vec3(0.0f), vec3(1.0f));
+		break;
 	}
 }
 
 void GUIManager::drawMenuBar() {
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("Add Object")) {
-			array<bool, 1> addObjectToggles;
+			array<bool, 2> addObjectToggles;
 			addObjectToggles.fill(false);
 
 			ImGui::MenuItem("Sphere", nullptr, &addObjectToggles[0]);
+			ImGui::MenuItem("Box", nullptr, &addObjectToggles[1]);
 			ImGui::EndMenu();
 
 			// We align the boolean array indices with the enums

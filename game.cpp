@@ -10,7 +10,8 @@ void Game::init() {
 
 	objectManager.addOperation(-1, OP_MIN);
 	objectManager.addSphere(0, vec3(0.0f, 5.0f, 0.0f), vec3(0.0f), 0.5f);
-	objectManager.addSphere(0, vec3(2.0f, 5.0f, 0.0f), vec3(0.0f), 0.5f);
+	//for(int i=0; i<50; i++)
+		objectManager.addSphere(0, vec3(2.0f, 5.0f, 0.0f), vec3(0.0f), 0.5f);
 }
 
 void Game::update(float dt) {

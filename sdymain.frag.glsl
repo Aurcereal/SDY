@@ -27,7 +27,12 @@ uniform ivec2 u_ScreenDimensions;
 
 #include "primitives.glsl"
 
-float dists[ELEMCOUNT];
+#include "common.glsl"
+
+// TODO: this is for each frag or whatever, somehow it shouldn't be ELEMCOUNT.  technically doesn't have to be since the objects that are intersecting should p much always be less
+// than ELEMCOUNT... we can make that assumption OK if not that'd be fucked.  anyways yeah remember that bounding box jumping dead stuff earlier, can use some shit to do mapping
+// to have a shorter array where we're not storing dists of dead nodes
+float dists[DISTELEMCOUNT];
 
 float sdOperationStack(vec3 p) {
 	for(int i=0; i<u_OperationCount; i++) {
@@ -39,6 +44,7 @@ float sdOperationStack(vec3 p) {
 		}
 	}
 
+	// why does this second for loop cost so much performance but not the first one?  even 10 vs 50 objects.. is it the copying of obj structs? switch statements?? WHAT. gotta debug later
 	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
 	// for speed optimization maybe when i delete certain nodes, can 'delete' them from the array by having like an array of [n1, n2, nDead, nDead, n5] and n5 has a backoffset of -3
 	// so we know to jump -3 to get to n2, but has to be per-frag array
@@ -47,12 +53,18 @@ float sdOperationStack(vec3 p) {
 
 		if(n.objectIndex != -1) {
 			// Leaves should only have objects, operationType should be a PRIM
+			vec3 lp;
 			switch(n.operationType) {
 				case PRIM_SPHERE:
-				Sphere sphere = u_Spheres.spheres[n.objectIndex];
-				vec3 lp = (sphere.invTransform * vec4(p, 1.0)).xyz;
-				dists[i] = length(lp) - sphere.r;
-				break;
+					Sphere sphere = u_Spheres.spheres[n.objectIndex];
+					lp = (sphere.invTransform * vec4(p, 1.0)).xyz;
+					dists[i] = length(lp) - sphere.r;
+					break;
+				case PRIM_BOX:
+					Box box = u_Boxes.boxes[n.objectIndex];
+					lp = (box.invTransform * vec4(p, 1.0)).xyz;
+					dists[i] = sdBox(lp, box.dim);
+					break;
 			}
 		}
 
@@ -61,8 +73,8 @@ float sdOperationStack(vec3 p) {
 			Node parentNode = u_Operations.nodes[n.parentIndex];
 			switch(parentNode.operationType) {
 				case OP_MIN:
-				dists[n.parentIndex] = min(dists[n.parentIndex], dists[i]);
-				break;
+					dists[n.parentIndex] = min(dists[n.parentIndex], dists[i]);
+					break;
 			}
 		}
 	}

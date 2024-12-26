@@ -3,7 +3,8 @@
 ObjectManager::ObjectManager(SDYShader* shader) : shader(shader) {}
 
 dict<SDNodeType, ivec2> ObjectManager::sizeMap = {
-	{PRIM_SPHERE, ivec2(17 * 4, 20 * 4)}
+	{PRIM_SPHERE, ivec2(17 * 4, 20 * 4)},
+	{PRIM_BOX, ivec2(19 * 4, 20 * 4) }
 };
 
 ivec2 ObjectManager::getStructSize(SDNodeType type) {
@@ -14,30 +15,41 @@ ivec2 ObjectManager::getStructSize(SDNodeType type) {
 SDObject::SDObject(mat4 m) : invTransform(m) {}
 
 Sphere::Sphere(mat4 m, float r) : SDObject(m), r(r) {}
+Box::Box(mat4 m, vec3 dim) : SDObject(m), dim(dim) {}
 
 void ObjectManager::addSphere(int parentIndex, vec3 pos, vec3 euler, float r) {
 	spheres.push_back(pair<Sphere, EulerEntity>(Sphere(mat4(1.0f), r), EulerEntity()));
-	int ind = spheres.size() - 1;
+	addOperation(parentIndex, PRIM_SPHERE, spheres.size() - 1);
 
-	EulerEntity& e = spheres[ind].second;
+	/*EulerEntity& e = spheres[ind].second;
 	Sphere& s = spheres[ind].first;
 
 	e.setEuler(euler);
 	e.setPos(pos);
-	s.invTransform = e.getInverseTransform();
-
-	shader->setObject(ind, PRIM_SPHERE, &s);
-	addOperation(parentIndex, PRIM_SPHERE);
+	s.invTransform = e.getInverseTransform();*/
+	setTranslationEulerOfNode(operations.size() - 1, pos, euler);
+	
+	shader->setObject(spheres.size()-1, PRIM_SPHERE, getObjectOfNode(operations.size() - 1).first);
+	
 }
 
-void ObjectManager::addOperation(int parentIndex, SDNodeType type) {
+void ObjectManager::addBox(int parentIndex, vec3 pos, vec3 euler, vec3 dim) {
+	boxes.push_back(pair<Box, EulerEntity>(Box(mat4(1.0f), dim), EulerEntity()));
+	addOperation(parentIndex, PRIM_BOX, boxes.size() - 1);
+
+	setTranslationEulerOfNode(operations.size() - 1, pos, euler);
+
+	shader->setObject(boxes.size()-1, PRIM_BOX, getObjectOfNode(operations.size() - 1).first);
+}
+
+void ObjectManager::addOperation(int parentIndex, SDNodeType type, int objectIndex) {
 	operations.push_back(OperationNode());
 	childArray.push_back(vector<int>());
 	int opIndex = operations.size() - 1;
 	OperationNode& n = operations[opIndex];
 	n.parentIndex = parentIndex;
 	n.operationType = type;
-	n.objectIndex = spheres.size() - 1;
+	n.objectIndex = objectIndex;
 
 	assert(parentIndex < opIndex);
 	if(parentIndex != -1) childArray[parentIndex].push_back(opIndex);
@@ -56,6 +68,9 @@ pair<SDObject*, EulerEntity*> ObjectManager::getObjectOfNode(int nodeIndex) {
 	switch (operation.operationType) {
 	case PRIM_SPHERE:
 		return pair<SDObject*, EulerEntity*>(&spheres[operation.objectIndex].first, &spheres[operation.objectIndex].second);
+		break;
+	case PRIM_BOX:
+		return pair<SDObject*, EulerEntity*>(&boxes[operation.objectIndex].first, &boxes[operation.objectIndex].second);
 		break;
 	}
 
@@ -78,7 +93,7 @@ void ObjectManager::setTranslationOfNode(int nodeIndex, vec3 translation) {
 	obj.second->setPos(translation);
 
 	obj.first->invTransform = obj.second->getInverseTransform();
-	shader->setObject(operations[nodeIndex].objectIndex, PRIM_SPHERE, obj.first);
+	shader->setObject(operations[nodeIndex].objectIndex, operations[nodeIndex].operationType, obj.first);
 }
 void ObjectManager::setEulerOfNode(int nodeIndex, vec3 euler) {
 	assert(nodeContainsObject(nodeIndex));
@@ -87,7 +102,7 @@ void ObjectManager::setEulerOfNode(int nodeIndex, vec3 euler) {
 	obj.second->setEuler(euler);
 
 	obj.first->invTransform = obj.second->getInverseTransform();
-	shader->setObject(operations[nodeIndex].objectIndex, PRIM_SPHERE, obj.first);
+	shader->setObject(operations[nodeIndex].objectIndex, operations[nodeIndex].operationType, obj.first);
 }
 void ObjectManager::setTranslationEulerOfNode(int nodeIndex, vec3 translation, vec3 euler) {
 	assert(nodeContainsObject(nodeIndex));
@@ -97,5 +112,5 @@ void ObjectManager::setTranslationEulerOfNode(int nodeIndex, vec3 translation, v
 	obj.second->setEuler(euler);
 
 	obj.first->invTransform = obj.second->getInverseTransform();
-	shader->setObject(operations[nodeIndex].objectIndex, PRIM_SPHERE, obj.first);
+	shader->setObject(operations[nodeIndex].objectIndex, operations[nodeIndex].operationType, obj.first);
 }
