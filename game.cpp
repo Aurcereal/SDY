@@ -1,19 +1,16 @@
 #include "game.h"
 #include "sdydatadefines.glsl"
 
-Game::Game(GLFWwindow* window, InputBundle* input) : window(window), cameraEnabled(true), input(input), camera(input), gl(), guiManager(&objectManager) {}
+Game::Game(GLFWwindow* window, InputBundle* input) : window(window), cameraEnabled(true), input(input), camera(input), gl(), objectManager(&gl.shader), guiManager(&objectManager) {}
 
 void Game::init() {
 	gl.initializeGL();
 
 	camera.setInitialUniforms(&gl.shader);
 
-	Sphere s1 = Sphere(vec3(0.0f, 5.0f, 0.0f), 0.5f);
-	Sphere s2 = Sphere(vec3(2.0f, 5.0f, 0.0f), 0.5f);
-
-	objectManager.addOperation(&gl.shader, -1, OP_MIN);
-	objectManager.addObject(&gl.shader, 0, PRIM_SPHERE, &s1);
-	objectManager.addObject(&gl.shader, 0, PRIM_SPHERE, &s2);
+	objectManager.addOperation(-1, OP_MIN);
+	objectManager.addSphere(0, vec3(0.0f, 5.0f, 0.0f), vec3(0.0f), 0.5f);
+	objectManager.addSphere(0, vec3(2.0f, 5.0f, 0.0f), vec3(0.0f), 0.5f);
 }
 
 void Game::update(float dt) {

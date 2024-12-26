@@ -9,7 +9,6 @@ class GUIManager {
 private:
 	bool widgetsEnabled;
 
-	mat4 traTest;
 	ObjectManager* objectManager;
 
 	int selectedNodeIndex;
@@ -18,6 +17,7 @@ private:
 	bool drawNode(int index);
 
 	void drawGizmos(const Camera&);
+	void drawObjectEditorPanel();
 public:
 	void setWidgetsActive(bool);
 

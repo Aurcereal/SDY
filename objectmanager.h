@@ -4,12 +4,16 @@
 #include <vector>
 #include "sdyshader.h"
 #include "sdydatadefines.glsl"
-#include <array>
+#include "editableentity.h"
 
-struct Sphere {
-	vec3 pos;
-	float r;
-	Sphere(vec3, float);
+struct SDObject {
+	mat4 invTransform;
+	SDObject(mat4);
+};
+
+struct Sphere : public SDObject {
+	float r; // maybe remove radius when/if transform scale good
+	Sphere(mat4, float);
 };
 
 struct OperationNode {
@@ -21,12 +25,29 @@ struct OperationNode {
 
 class ObjectManager {
 private:
-	vector<Sphere> spheres;
+	vector<pair<Sphere, EulerEntity>> spheres;
 	vector<OperationNode> operations;
 	vector<vector<int>> childArray;
+
+	static dict<SDNodeType, ivec2> sizeMap;
+
+	pair<SDObject*, EulerEntity*> getObjectOfNode(int nodeIndex);
+
+	SDYShader* shader;
 public:
+	ObjectManager(SDYShader*);
+
 	friend class GUIManager;
 
-	void addObject(SDYShader*, int parentIndex, SDNodeType type, void* data); // will add the data and the node
-	void addOperation(SDYShader*, int parentIndex, SDNodeType type);
+	void addSphere(int parentIndex, vec3 pos, vec3 euler, float r); // will add the data and the node
+	void addOperation(int parentIndex, SDNodeType type);
+
+	static ivec2 getStructSize(SDNodeType);
+
+	bool nodeContainsObject(int nodeIndex);
+	
+	void getTransformationOfNode(int nodeIndex, vec3* translation, vec3* euler, mat4* transform);
+	void setTranslationEulerOfNode(int nodeIndex, vec3 translation, vec3 euler);
+	void setTranslationOfNode(int nodeIndex, vec3 translation);
+	void setEulerOfNode(int nodeIndex, vec3 euler);
 };

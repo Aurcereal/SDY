@@ -1,7 +1,7 @@
 #include "sdydatadefines.glsl"
 
 struct Sphere {
-	vec3 pos;
+	mat4 invTransform;
 	float r;
 	// int material index or smth, have material index file u can also include in cpp, dotted walk over floor spec display mat or smth idk
 };

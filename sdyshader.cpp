@@ -1,5 +1,5 @@
 #include "sdyshader.h"
-#include "sdydatadefines.glsl""
+#include "objectmanager.h"
 
 SDYShader::SDYShader() : sphereUBOHandle(), Shader() {}
 
@@ -26,9 +26,10 @@ void SDYShader::uniformOperationCount(int newOperationCount) {
 	uniformInt("u_OperationCount", newOperationCount);
 }
 
-void SDYShader::setSphere(int i, void* data) {
+void SDYShader::setObject(int i, SDNodeType type, void* data) {
 	glBindBuffer(GL_UNIFORM_BUFFER, sphereUBOHandle);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec4) * i, sizeof(vec4), data);
+	ivec2 sizeData = ObjectManager::getStructSize(type);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeData.y * i, sizeData.x, data);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0); // TODO: do something to prevent constant buffer switching?
 }
 

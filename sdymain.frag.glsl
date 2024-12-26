@@ -50,7 +50,8 @@ float sdOperationStack(vec3 p) {
 			switch(n.operationType) {
 				case PRIM_SPHERE:
 				Sphere sphere = u_Spheres.spheres[n.objectIndex];
-				dists[i] = length(p - sphere.pos) - sphere.r;
+				vec3 lp = (sphere.invTransform * vec4(p, 1.0)).xyz;
+				dists[i] = length(lp) - sphere.r;
 				break;
 			}
 		}
