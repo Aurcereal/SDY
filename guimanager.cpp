@@ -1,6 +1,7 @@
 #include "guimanager.h"
 #include "mygl.h"
 #include "math.h"
+#include <array>
 
 GUIManager::GUIManager(ObjectManager* manager) : objectManager(manager), selectedNodeIndex(-1), widgetsEnabled(true) {}
 
@@ -32,7 +33,8 @@ void GUIManager::recursiveDrawTree(int index) {
 }
 
 void GUIManager::drawImGuiElements(const Camera& camera) {
-	ImGui::Begin("Scene");
+	ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_MenuBar);
+	drawMenuBar();
 	recursiveDrawTree(0);
 	ImGui::End();
 
@@ -41,6 +43,37 @@ void GUIManager::drawImGuiElements(const Camera& camera) {
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void GUIManager::addObject(SDNodeType type) {
+	assert(type >= 0);
+	int parentIndex = (selectedNodeIndex != -1 && !objectManager->nodeContainsObject(selectedNodeIndex)) ?
+		selectedNodeIndex : 0;
+
+	switch (type) {
+	case PRIM_SPHERE:
+		objectManager->addSphere(parentIndex, vec3(0.0f), vec3(0.0f), 1.0f);
+		break;
+	}
+}
+
+void GUIManager::drawMenuBar() {
+	if (ImGui::BeginMenuBar()) {
+		if (ImGui::BeginMenu("Add Object")) {
+			array<bool, 1> addObjectToggles;
+			addObjectToggles.fill(false);
+
+			ImGui::MenuItem("Sphere", nullptr, &addObjectToggles[0]);
+			ImGui::EndMenu();
+
+			// We align the boolean array indices with the enums
+			for (int i = 0; i < addObjectToggles.size(); i++) {
+				if (addObjectToggles.at(i))
+					addObject(i);
+			}
+		}
+		ImGui::EndMenuBar();
+	}
 }
 
 void GUIManager::drawGizmos(const Camera &camera) {

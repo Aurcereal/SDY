@@ -13,16 +13,19 @@ private:
 
 	int selectedNodeIndex;
 
+	void drawMenuBar();
 	void recursiveDrawTree(int index);
 	bool drawNode(int index);
 
 	void drawGizmos(const Camera&);
 	void drawObjectEditorPanel();
+
+	//
+	void addObject(SDNodeType);
 public:
 	void setWidgetsActive(bool);
 
 	GUIManager(ObjectManager*);
-	void addNode(SDNodeType type); // from drop-down add menu or smth
 
 	void drawImGuiElements(const Camera&);
 };
