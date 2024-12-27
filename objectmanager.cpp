@@ -87,13 +87,6 @@ void ObjectManager::getTransformationOfNode(int nodeIndex, vec3* translation, ve
 	if (euler != nullptr) *euler = e->getEuler();
 	if (transform != nullptr) *transform = e->getTransform();
 
-	// Debug use their recompose matrix func
-	/*if (transform != nullptr) {
-		vec3 pos = e->getPos();
-		vec3 euler = e->getEuler();
-		vec3 scale = vec3(1.0f);
-		ImGuizmo::RecomposeMatrixFromComponents(glm::value_ptr(pos), glm::value_ptr(euler), glm::value_ptr(scale), glm::value_ptr(*transform));
-	}*/
 }
 void ObjectManager::setTranslationOfNode(int nodeIndex, vec3 translation) {
 	assert(nodeContainsObject(nodeIndex));
