@@ -32,5 +32,6 @@ void Game::update(float dt) {
 
 void Game::render() {
 	gl.render();
+	guiManager.processInput(*input);
 	guiManager.drawImGuiElements(camera);
 }

@@ -3,7 +3,7 @@
 #include "math.h"
 #include <array>
 
-GUIManager::GUIManager(ObjectManager* manager) : objectManager(manager), selectedNodeIndex(-1), widgetsEnabled(true) {}
+GUIManager::GUIManager(ObjectManager* manager) : objectManager(manager), selectedNodeIndex(-1), widgetsEnabled(true), currOperation(ImGuizmo::OPERATION::TRANSLATE) {}
 
 bool GUIManager::drawNode(int index) {
 	// https://kahwei.dev/2022/06/20/imgui-tree-node/
@@ -80,6 +80,15 @@ void GUIManager::drawMenuBar() {
 	}
 }
 
+void GUIManager::processInput(const InputBundle& input) {
+	if (widgetsEnabled) {
+		if (input.wDown)
+			currOperation = ImGuizmo::OPERATION::TRANSLATE;
+		if (input.rDown)
+			currOperation = ImGuizmo::OPERATION::ROTATE;
+	}
+}
+
 void GUIManager::drawGizmos(const Camera &camera) {
 	
 	// https://www.youtube.com/watch?v=Pegb5CZuibU&t=694s
@@ -96,11 +105,11 @@ void GUIManager::drawGizmos(const Camera &camera) {
 		objectManager->getTransformationOfNode(selectedNodeIndex, nullptr, nullptr, &transform);
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
-			ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(transform));
+			currOperation, ImGuizmo::LOCAL, glm::value_ptr(transform));
 
 		if (ImGuizmo::IsUsing()) {
 			vec3 p, e;
-			decomposeTransformation(transform, &p, &e);
+			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(p), glm::value_ptr(e), nullptr);
 			objectManager->setTranslationEulerOfNode(selectedNodeIndex, p, e);
 		}
 	}

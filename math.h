@@ -6,6 +6,6 @@
 
 using namespace glm;
 
-void decomposeTransformation(const mat4& m, vec3* translation, vec3* euler);
+void decomposeTransformationXYZ(const mat4& m, vec3* translation, vec3* euler);
 
 mat4 eulerToRotationXYZ(vec3 euler);

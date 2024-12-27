@@ -8,6 +8,7 @@
 class GUIManager {
 private:
 	bool widgetsEnabled;
+	ImGuizmo::OPERATION currOperation;
 
 	ObjectManager* objectManager;
 
@@ -28,4 +29,5 @@ public:
 	GUIManager(ObjectManager*);
 
 	void drawImGuiElements(const Camera&);
+	void processInput(const InputBundle&);
 };

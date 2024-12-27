@@ -4,7 +4,7 @@
 
 class EulerEntity : public Entity {
 private:
-	vec3 euler; // XYZ
+	vec3 euler; // ZYX
 public:
 	vec3 getEuler();
 	void setEuler(vec3);

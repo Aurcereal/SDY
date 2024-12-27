@@ -7,7 +7,7 @@ vec3 EulerEntity::getEuler() {
 
 void EulerEntity::setEuler(vec3 newEuler) {
 	euler = newEuler;
-	mat4 rot = glm::eulerAngleXYZ(euler.x, euler.y, euler.z);
+	mat4 rot = glm::eulerAngleZYX(euler.z, euler.y, euler.x);
 	ri = vec3(rot[0]);
 	up = vec3(rot[1]);
 	fo = vec3(rot[2]);
