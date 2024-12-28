@@ -31,18 +31,16 @@ uniform ivec2 u_ScreenDimensions;
 
 #include "common.glsl"
 
-// TODO: this is for each frag or whatever, somehow it shouldn't be ELEMCOUNT.  technically doesn't have to be since the objects that are intersecting should p much always be less
-// than ELEMCOUNT... we can make that assumption OK if not that'd be fucked.  anyways yeah remember that bounding box jumping dead stuff earlier, can use some shit to do mapping
-// to have a shorter array where we're not storing dists of dead nodes
-float dists[DISTELEMCOUNT];
+struct ObjectAccessor {
+	int index;
+	SDNodeType type;
+};
 
-// Rule: All non-prim operations must have indices lower than all prim operations
-// Another relevant rule: All non-prim operations will be added to the search stack always for now.
-// These imply that for an arb non-prim operation 'o', index of o in searchStack equals index of o in u_Operations.nodes
-// I can't maintain that first rule for long tho cuz if I wanna add a MIN operation, don't wanna shift everything.  I think I'll have a separate
-// buffer for operations and leaf nodes later. (1 buffer for internal nodes, 1 buffer for leaf nodes)
-int searchStack[DISTELEMCOUNT];
+float dists[MAXSEARCHSIZE];
+ObjectAccessor searchStack[MAXSEARCHSIZE];
 int searchStackSize;
+
+float debugVal;
 
 vec2 fillSearchStack(vec3 ro, vec3 ird) {
 	// first calculate bounding box dim, then try buffering it in
@@ -52,35 +50,48 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 	vec2 searchBounds = vec2(MAXDIST, 0.0);
 	searchStackSize = 0;
 	for(int i=0; i<u_OperationCount; i++) {
-		Node n = u_Operations.nodes[i];
+		ObjectAccessor accessor;
+		accessor.index = i;
+		accessor.type = u_Operations.nodes[i].operationType;
+		searchStack[i] = accessor;
+		searchStackSize++;
+	}
 
-		if(n.operationType < 0) {
-			searchStack[searchStackSize] = i;
+	for(int i=0; i<u_SphereCount; i++) {
+		Sphere s = u_Spheres.spheres[i];
+
+		vec3 lro = ro + vec3(vec4(s.invTransform[3].xyz, 0.0) * s.invTransform );
+		vec3 boxDim = vec3(2.0*s.r);
+
+		vec2 ts = rayBoxIntersect(lro, ird, boxDim);
+		if(ts.x <= ts.y && ts.y >= 0.0) {
+			ObjectAccessor accessor;
+			accessor.index = i;
+			accessor.type = PRIM_SPHERE;
+			searchStack[searchStackSize] = accessor;
 			searchStackSize++;
-			continue;
-		} else {
-			vec3 lro = ro;
-			vec3 boxDim;
-			switch(n.operationType) {
-				case PRIM_SPHERE:
-					lro = ro + vec3(vec4(u_Spheres.spheres[n.objectIndex].invTransform[3].xyz, 0.0) * u_Spheres.spheres[n.objectIndex].invTransform );
-					boxDim = vec3(2.0*u_Spheres.spheres[n.objectIndex].r);
-					break;
-				case PRIM_BOX:
-					lro = ro + vec3(vec4(u_Boxes.boxes[n.objectIndex].invTransform[3].xyz, 0.0) * u_Boxes.boxes[n.objectIndex].invTransform );
-					boxDim = u_Boxes.boxes[n.objectIndex].dim*1.732;
-					break;
-			}
 
-			vec2 ts = rayBoxIntersect(lro, ird, boxDim);
-			if(ts.x <= ts.y && ts.y >= 0.0) {
-				// Later make it return vec2 or smth so we march from start to back
-				searchStack[searchStackSize] = i;
-				searchStackSize++;
+			searchBounds.x = min(ts.x, searchBounds.x);
+			searchBounds.y = max(ts.y, searchBounds.y);
+		}
+	}
 
-				searchBounds.x = min(ts.x, searchBounds.x);
-				searchBounds.y = max(ts.y, searchBounds.y);
-			}
+	for(int i=0; i<u_BoxCount; i++) {
+		Box b = u_Boxes.boxes[i];
+
+		vec3 lro = ro + vec3(vec4(b.invTransform[3].xyz, 0.0) * b.invTransform );
+		vec3 boxDim = b.dim*1.732;
+
+		vec2 ts = rayBoxIntersect(lro, ird, boxDim);
+		if(ts.x <= ts.y && ts.y >= 0.0) {
+			ObjectAccessor accessor;
+			accessor.index = i;
+			accessor.type = PRIM_BOX;
+			searchStack[searchStackSize] = accessor;
+			searchStackSize++;
+
+			searchBounds.x = min(ts.x, searchBounds.x);
+			searchBounds.y = max(ts.y, searchBounds.y);
 		}
 	}
 
@@ -90,43 +101,51 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 float sdOperationStack(vec3 p) {
 	for(int i=0; i<searchStackSize; i++) {
 		// use bit slicing operations where a bit can correspond to min or max and another bit can correpsond to smooth or not
-		if(u_Operations.nodes[searchStack[i]].operationType == OP_MIN || u_Operations.nodes[searchStack[i]].operationType == OP_SMIN) {
-			dists[i] = MAXDIST;
-		} else {
-			dists[i] = -MAXDIST;
+		//if(u_Operations.nodes[searchStack[i]].operationType == OP_MIN || u_Operations.nodes[searchStack[i]].operationType == OP_SMIN) {
+		//	dists[i] = MAXDIST;
+		//} else {
+		//	dists[i] = -MAXDIST;
+		//}
+		dists[i] = MAXDIST;
+	}
+
+	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
+	for(int i=searchStackSize-1; i>=u_OperationCount; i--) {
+		ObjectAccessor accessor = searchStack[i];
+		int parentIndex;
+		switch(accessor.type) {
+			vec3 lp;
+			case PRIM_SPHERE:
+				Sphere sphere = u_Spheres.spheres[accessor.index];
+				lp = (sphere.invTransform * vec4(p, 1.0)).xyz;
+				dists[i] = length(lp) - sphere.r;
+				parentIndex = sphere.parentIndex;
+				break;
+			case PRIM_BOX:
+				Box box = u_Boxes.boxes[accessor.index];
+				lp = (box.invTransform * vec4(p, 1.0)).xyz;
+				dists[i] = sdBox(lp, box.dim);
+				parentIndex = box.parentIndex;
+				break;
+		}
+
+		Node parentNode = u_Operations.nodes[parentIndex];
+		switch(parentNode.operationType) {
+			case OP_MIN:
+				dists[parentIndex] = min(dists[parentIndex], dists[i]);
+				break;
 		}
 	}
 
-	// why does this second for loop cost so much performance but not the first one?  even 10 vs 50 objects.. is it the copying of obj structs? switch statements?? WHAT. gotta debug later
-	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
-	// for speed optimization maybe when i delete certain nodes, can 'delete' them from the array by having like an array of [n1, n2, nDead, nDead, n5] and n5 has a backoffset of -3
-	// so we know to jump -3 to get to n2, but has to be per-frag array
-	for(int i=searchStackSize-1; i>=0; i--) {
-		Node n = u_Operations.nodes[searchStack[i]];
-
-		if(n.objectIndex != -1) {
-			// Leaves should only have objects, operationType should be a PRIM
-			vec3 lp;
-			switch(n.operationType) {
-				case PRIM_SPHERE:
-					Sphere sphere = u_Spheres.spheres[n.objectIndex];
-					lp = (sphere.invTransform * vec4(p, 1.0)).xyz;
-					dists[i] = length(lp) - sphere.r;
-					break;
-				case PRIM_BOX:
-					Box box = u_Boxes.boxes[n.objectIndex];
-					lp = (box.invTransform * vec4(p, 1.0)).xyz;
-					dists[i] = sdBox(lp, box.dim);
-					break;
-			}
-		}
-
+	for(int i=u_OperationCount-1; i>=0; i--) {
+		// later i dont actually have to add the operations to the stack, need to allocate space for them on dist array is all
+		ObjectAccessor accessor = searchStack[i];
+		Node n = u_Operations.nodes[accessor.index];
+		
 		if(n.parentIndex != -1) {
-			// Internal nodes should only have operations, operationType should be an OP
 			Node parentNode = u_Operations.nodes[n.parentIndex];
 			switch(parentNode.operationType) {
 				case OP_MIN:
-					// dists[n.parentIndex] uses rule on line 39
 					dists[n.parentIndex] = min(dists[n.parentIndex], dists[i]);
 					break;
 			}
@@ -180,6 +199,7 @@ vec3 render(vec2 p) {
 ///
 
 void main() {
+	debugVal = 0.0;
 	vec2 p = (gl_FragCoord.xy/(1.0*u_ScreenDimensions))*2.0-1.0;
 	vec3 col = render(p);
 

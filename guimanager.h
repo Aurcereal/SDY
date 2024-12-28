@@ -12,11 +12,11 @@ private:
 
 	ObjectManager* objectManager;
 
-	int selectedNodeIndex;
+	NodeAccessor selectedNode;
 
 	void drawMenuBar();
-	void recursiveDrawTree(int index);
-	bool drawNode(int index);
+	void recursiveDrawTree(NodeAccessor);
+	bool drawNode(NodeAccessor);
 
 	void drawGizmos(const Camera&);
 	void drawObjectEditorPanel();

@@ -2,40 +2,41 @@
 #include "mygl.h"
 #include "math.h"
 #include <array>
+#include <iostream>
 
-GUIManager::GUIManager(ObjectManager* manager) : objectManager(manager), selectedNodeIndex(-1), widgetsEnabled(true), currOperation(ImGuizmo::OPERATION::TRANSLATE) {}
+GUIManager::GUIManager(ObjectManager* manager) : objectManager(manager), selectedNode(NodeAccessor::getNull()), widgetsEnabled(true), currOperation(ImGuizmo::OPERATION::TRANSLATE) {}
 
-bool GUIManager::drawNode(int index) {
+bool GUIManager::drawNode(NodeAccessor accessor) {
 	// https://kahwei.dev/2022/06/20/imgui-tree-node/
 	ImGuiTreeNodeFlags flags = 
 		ImGuiTreeNodeFlags_DefaultOpen |
 		ImGuiTreeNodeFlags_OpenOnDoubleClick |
 		ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	if (selectedNodeIndex == index) flags |= ImGuiTreeNodeFlags_Selected;
-	if (objectManager->childArray[index].empty()) flags |= ImGuiTreeNodeFlags_Leaf;
+	if (selectedNode == accessor) flags |= ImGuiTreeNodeFlags_Selected;
+	if (accessor.isLeaf()) flags |= ImGuiTreeNodeFlags_Leaf;
 
-	bool isOpen = ImGui::TreeNodeEx(std::to_string(index).c_str(), flags);
+	bool isOpen = ImGui::TreeNodeEx(std::to_string(accessor.index).c_str(), flags);
 
 	bool isClicked = ImGui::IsItemClicked(); // Use right after TreeNodeEx
-	if (isClicked) selectedNodeIndex = index;
+	if (isClicked) selectedNode = accessor;
 
 	return isOpen;
 }
 
-void GUIManager::recursiveDrawTree(int index) {
-	if (drawNode(index)) {
-		for (int childIndex : objectManager->childArray[index]) {
-			recursiveDrawTree(childIndex);
+void GUIManager::recursiveDrawTree(NodeAccessor accessor) {
+	if (drawNode(accessor) && !accessor.isLeaf()) {
+		for (const NodeAccessor& childAccessor : objectManager->childArray[accessor.index]) {
+			recursiveDrawTree(childAccessor);
 		}
-		ImGui::TreePop();
 	}
+	ImGui::TreePop();
 }
 
 void GUIManager::drawImGuiElements(const Camera& camera) {
 	ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_MenuBar);
 	drawMenuBar();
-	recursiveDrawTree(0);
+	recursiveDrawTree(NodeAccessor::getRoot());
 	ImGui::End();
 
 	drawGizmos(camera);
@@ -47,8 +48,8 @@ void GUIManager::drawImGuiElements(const Camera& camera) {
 
 void GUIManager::addObject(SDNodeType type) {
 	assert(type >= 0);
-	int parentIndex = (selectedNodeIndex != -1 && !objectManager->nodeContainsObject(selectedNodeIndex)) ?
-		selectedNodeIndex : 0;
+	int parentIndex = (!selectedNode.isNull() && !objectManager->nodeContainsObject(selectedNode)) ?
+		selectedNode.index : 0;
 
 	switch (type) {
 	case PRIM_SPHERE:
@@ -92,7 +93,7 @@ void GUIManager::processInput(const InputBundle& input) {
 void GUIManager::drawGizmos(const Camera &camera) {
 	
 	// https://www.youtube.com/watch?v=Pegb5CZuibU&t=694s
-	if (widgetsEnabled && selectedNodeIndex != -1 && objectManager->nodeContainsObject(selectedNodeIndex)) {
+	if (widgetsEnabled && !selectedNode.isNull() && objectManager->nodeContainsObject(selectedNode)) {
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 
@@ -102,7 +103,7 @@ void GUIManager::drawGizmos(const Camera &camera) {
 		mat4 view = camera.getInverseTransform();
 
 		mat4 transform;
-		objectManager->getTransformationOfNode(selectedNodeIndex, nullptr, nullptr, &transform);
+		objectManager->getTransformationOfNode(selectedNode, nullptr, nullptr, &transform);
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
 			currOperation, ImGuizmo::LOCAL, glm::value_ptr(transform));
@@ -110,7 +111,7 @@ void GUIManager::drawGizmos(const Camera &camera) {
 		if (ImGuizmo::IsUsing()) {
 			vec3 p, e;
 			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(p), glm::value_ptr(e), nullptr);
-			objectManager->setTranslationEulerOfNode(selectedNodeIndex, p, e);
+			objectManager->setTranslationEulerOfNode(selectedNode, p, e);
 		}
 	}
 
@@ -123,11 +124,11 @@ void GUIManager::setWidgetsActive(bool b) {
 void GUIManager::drawObjectEditorPanel() {
 	ImGui::Begin("Editor");
 
-	if (selectedNodeIndex != -1 && objectManager->nodeContainsObject(selectedNodeIndex)) {
+	if (!selectedNode.isNull() && objectManager->nodeContainsObject(selectedNode)) {
 		ImGui::SeparatorText("Edit Transform");
 
 		vec3 p, e;
-		objectManager->getTransformationOfNode(selectedNodeIndex, &p, &e, nullptr);
+		objectManager->getTransformationOfNode(selectedNode, &p, &e, nullptr);
 
 		float pos[3] = { p.x, p.y, p.z };
 		float euler[3] = { e.x, e.y, e.z };
@@ -137,7 +138,7 @@ void GUIManager::drawObjectEditorPanel() {
 		changed |= ImGui::InputFloat3("Euler", euler);
 
 		if (changed)
-			objectManager->setTranslationEulerOfNode(selectedNodeIndex, vec3(pos[0], pos[1], pos[2]), vec3(euler[0], euler[1], euler[2]));
+			objectManager->setTranslationEulerOfNode(selectedNode, vec3(pos[0], pos[1], pos[2]), vec3(euler[0], euler[1], euler[2]));
 	}
 	else {
 		ImGui::Text("No primitive selected.");

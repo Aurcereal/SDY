@@ -1,7 +1,12 @@
 #include "sdyshader.h"
 #include "objectmanager.h"
 
-SDYShader::SDYShader() : objectUBOHandles(), operationsUBOHandle(), Shader() {}
+SDYShader::SDYShader() : objectUBOHandles(), objectCounts(), operationsUBOHandle(), operationCount(0), Shader() {}
+
+dict<SDNodeType, string> SDYShader::primToCountUniform = {
+	{PRIM_SPHERE, "u_SphereCount"},
+	{PRIM_BOX, "u_BoxCount"}
+};
 
 void SDYShader::setupObjectUBOs() {
 	objectUBOHandles[PRIM_SPHERE] = glGetUniformBlockIndex(programHandle, "SpheresBlock");
@@ -33,16 +38,28 @@ void SDYShader::uniformOperationCount(int newOperationCount) {
 	uniformInt("u_OperationCount", newOperationCount);
 }
 
-void SDYShader::setObject(int i, SDNodeType type, void* data) {
+void SDYShader::uniformObjectCount(int newObjectCount, SDNodeType type) {
+	use();
+	assert(primToCountUniform.count(type) != 0);
+	uniformInt(primToCountUniform[type], newObjectCount);
+}
+
+void SDYShader::setObject(int i, SDNodeType type, void* data, bool uniformCount) {
 	assert(objectUBOHandles.count(type) != 0);
 	glBindBuffer(GL_UNIFORM_BUFFER, objectUBOHandles[type]);
 	ivec2 sizeData = ObjectManager::getStructSize(type);
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeData.y * i, sizeData.x, data);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0); // TODO: do something to prevent constant buffer switching?
+
+	if (uniformCount && i > objectCounts[type] - 1)
+		uniformObjectCount(i + 1, type);
 }
 
-void SDYShader::setOperation(int i, void* data) {
+void SDYShader::setOperation(int i, void* data, bool uniformCount) {
 	glBindBuffer(GL_UNIFORM_BUFFER, operationsUBOHandle);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec4) * i, 12, data);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec4) * i, 8, data);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	if (uniformCount && i > operationCount - 1)
+		uniformOperationCount(i + 1);
 }
