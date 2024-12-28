@@ -8,6 +8,15 @@ dict<SDNodeType, ivec2> ObjectManager::sizeMap = {
 	{PRIM_BOX, ivec2(23 * 4, 24 * 4) }
 };
 
+dict<SDNodeType, string> ObjectManager::classMap = {
+	{PRIM_SPHERE, "Sphere"},
+	{PRIM_BOX, "Box"},
+	{OP_MIN, "Union"},
+	{OP_SMIN, "Smooth Union"},
+	{OP_MAX, "Intersection"},
+	{OP_SMAX, "Smooth Intersection"}
+};
+
 ivec2 ObjectManager::getStructSize(SDNodeType type) {
 	assert(sizeMap.count(type) != 0);
 	return sizeMap[type];
@@ -103,4 +112,19 @@ void ObjectManager::setTranslationEulerOfNode(NodeAccessor accessor, vec3 transl
 
 	obj.first->invTransform = obj.second->getInverseTransform();
 	shader->setObject(accessor.index, accessor.type, obj.first);
+}
+
+string ObjectManager::getName(NodeAccessor accessor) {
+	if (nameMap.count(accessorToKey(accessor)) != 0) {
+		return nameMap[accessorToKey(accessor)];
+	}
+	else {
+		assert(classMap.count(accessor.type) != 0);
+		string s = classMap[accessor.type];
+		return s.append(" ").append(std::to_string(accessor.index));
+	}
+}
+
+void ObjectManager::setName(NodeAccessor accessor, string name) {
+	nameMap[accessorToKey(accessor)] = name;
 }

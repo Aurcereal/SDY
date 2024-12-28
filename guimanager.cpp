@@ -16,7 +16,7 @@ bool GUIManager::drawNode(NodeAccessor accessor) {
 	if (selectedNode == accessor) flags |= ImGuiTreeNodeFlags_Selected;
 	if (accessor.isLeaf()) flags |= ImGuiTreeNodeFlags_Leaf;
 
-	bool isOpen = ImGui::TreeNodeEx(std::to_string(accessor.index).c_str(), flags);
+	bool isOpen = ImGui::TreeNodeEx(objectManager->getName(accessor).c_str(), flags);
 
 	bool isClicked = ImGui::IsItemClicked(); // Use right after TreeNodeEx
 	if (isClicked) selectedNode = accessor;

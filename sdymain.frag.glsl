@@ -20,7 +20,7 @@ uniform ivec2 u_ScreenDimensions;
 
 ///
 
-#define VISUALIZEBOUNDINGBOX
+//#define VISUALIZEBOUNDINGBOX
 
 #define PI 3.141592
 #define TAU (2.0*PI)
@@ -156,11 +156,7 @@ float sdOperationStack(vec3 p) {
 }
 
 float sdf(vec3 p) {
-	float d = length(p-vec3(0.0, 0.0, 5.0)) - 1.0;
-
-	d = min(d, sdOperationStack(p));
-
-	return d;
+	return sdOperationStack(p);
 }
 
 #include "raymarching.glsl"

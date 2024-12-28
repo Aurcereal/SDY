@@ -11,6 +11,7 @@
 #define OP_SMIN -2
 #define OP_MAX -3
 #define OP_SMAX -4
+#define OPCOUNT 4
 
 #define SDNodeType int
 

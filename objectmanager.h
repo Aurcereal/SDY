@@ -48,6 +48,9 @@ private:
 	vector<vector<NodeAccessor>> childArray;
 
 	static dict<SDNodeType, ivec2> sizeMap;
+	static dict<SDNodeType, string> classMap;
+
+	dict<int, string> nameMap;
 
 	pair<SDObject*, EulerEntity*> getObjectOfNode(NodeAccessor);
 
@@ -70,4 +73,8 @@ public:
 	void setTranslationEulerOfNode(NodeAccessor, vec3 translation, vec3 euler);
 	void setTranslationOfNode(NodeAccessor, vec3 translation);
 	void setEulerOfNode(NodeAccessor, vec3 euler);
+
+	inline static int accessorToKey(NodeAccessor a) { return a.index * OPCOUNT + a.type; }
+	string getName(NodeAccessor);
+	void setName(NodeAccessor, string);
 };
