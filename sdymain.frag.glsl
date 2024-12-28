@@ -63,11 +63,11 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 			vec3 boxDim;
 			switch(n.operationType) {
 				case PRIM_SPHERE:
-					lro = ro + u_Spheres.spheres[n.objectIndex].invTransform[3].xyz;
+					lro = ro + vec3(vec4(u_Spheres.spheres[n.objectIndex].invTransform[3].xyz, 0.0) * u_Spheres.spheres[n.objectIndex].invTransform );
 					boxDim = vec3(2.0*u_Spheres.spheres[n.objectIndex].r);
 					break;
 				case PRIM_BOX:
-					lro = ro + u_Boxes.boxes[n.objectIndex].invTransform[3].xyz;
+					lro = ro + vec3(vec4(u_Boxes.boxes[n.objectIndex].invTransform[3].xyz, 0.0) * u_Boxes.boxes[n.objectIndex].invTransform );
 					boxDim = u_Boxes.boxes[n.objectIndex].dim*1.732;
 					break;
 			}
