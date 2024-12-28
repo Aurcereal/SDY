@@ -36,12 +36,14 @@ void SDYShader::setupObjectUBOs() {
 void SDYShader::uniformOperationCount(int newOperationCount) {
 	use();
 	uniformInt("u_OperationCount", newOperationCount);
+	operationCount = newOperationCount;
 }
 
 void SDYShader::uniformObjectCount(int newObjectCount, SDNodeType type) {
 	use();
 	assert(primToCountUniform.count(type) != 0);
 	uniformInt(primToCountUniform[type], newObjectCount);
+	objectCounts[type] = newObjectCount;
 }
 
 void SDYShader::setObject(int i, SDNodeType type, void* data, bool uniformCount) {
