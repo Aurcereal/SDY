@@ -134,6 +134,9 @@ float sdOperationStack(vec3 p) {
 			case OP_MIN:
 				dists[parentIndex] = min(dists[parentIndex], dists[i]);
 				break;
+			case OP_SMIN:
+				dists[parentIndex] = smin(dists[parentIndex], dists[i], 0.5);
+				break;
 		}
 	}
 

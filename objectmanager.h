@@ -9,6 +9,7 @@
 struct SDObject {
 	mat4 invTransform;
 	int parentIndex;
+	int distortionIndex; // to do space ops, we'll store a tree of distortion types and parameters, then another tree that maps onto it that glsl can edit storing the vec3 p every dist sample
 	SDObject(mat4, int);
 };
 
@@ -18,14 +19,24 @@ struct Sphere : public SDObject {
 };
 
 struct Box : public SDObject {
-	vec3 dummy; // temp data alignment fix, wanna rearrange variables in c++ even with inheritance but how
+	vec2 dummy; // temp data alignment fix, wanna rearrange variables in c++ even with inheritance but how
 	vec3 dim; // same idea as sphere where u could remove
 	Box(mat4, int, vec3);
+};
+
+struct Min { };
+struct Max { };
+struct SMin {
+	float smoothness;
+};
+struct SMax {
+	float smoothness;
 };
 
 struct OperationNode {
 	int parentIndex;
 	int operationType;
+	float boundingBoxMult = 1.0f; // !
 };
 
 struct NodeAccessor {
@@ -41,6 +52,16 @@ struct NodeAccessor {
 
 class ObjectManager {
 private:
+	static inline bool isSmooth(SDNodeType type) {
+		return type == OP_SMIN || type == OP_SMAX;
+	}
+
+	vector<Min> minOps;
+	vector<Max> maxOps;
+	vector<SMin> sminOps;
+	vector<SMax> smaxOps;
+
+	// Objects
 	vector<pair<Sphere, EulerEntity>> spheres;
 	vector<pair<Box, EulerEntity>> boxes;
 

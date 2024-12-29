@@ -8,7 +8,7 @@ void Game::init() {
 
 	camera.setInitialUniforms(&gl.shader);
 
-	objectManager.addOperation(-1, OP_MIN);
+	objectManager.addOperation(-1, OP_SMIN);
 	objectManager.addSphere(0, vec3(0.0f, 5.0f, 0.0f), vec3(0.0f), 0.5f);
 	for(int i=0; i<50; i++)
 		objectManager.addSphere(0, vec3(2.0f+i, 5.0f, 0.0f), vec3(0.0f), 0.5f);

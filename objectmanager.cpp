@@ -50,6 +50,8 @@ void ObjectManager::addOperation(int parentIndex, SDNodeType type) {
 	OperationNode& n = operations[opIndex];
 	n.parentIndex = parentIndex;
 	n.operationType = type;
+	if (isSmooth(n.operationType)) n.boundingBoxMult = 1.5f; // later when i add params for operations and they have references to their own buffers with their own structs can grab the k val
+	if (parentIndex != -1) n.boundingBoxMult = glm::max(n.boundingBoxMult, operations[parentIndex].boundingBoxMult);
 
 	assert(parentIndex < opIndex);
 	if(parentIndex != -1) childArray[parentIndex].push_back(NodeAccessor(type, opIndex));

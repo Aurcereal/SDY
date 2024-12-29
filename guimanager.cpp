@@ -106,7 +106,7 @@ void GUIManager::drawGizmos(const Camera &camera) {
 		objectManager->getTransformationOfNode(selectedNode, nullptr, nullptr, &transform);
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
-			currOperation, ImGuizmo::LOCAL, glm::value_ptr(transform));
+			currOperation, ImGuizmo::WORLD, glm::value_ptr(transform));
 
 		if (ImGuizmo::IsUsing()) {
 			vec3 p, e;
