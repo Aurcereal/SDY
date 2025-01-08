@@ -12,17 +12,17 @@ private:
 
 	ObjectManager* objectManager;
 
-	NodeAccessor selectedNode;
+	NodeCPU* selectedNode;
 
 	void drawMenuBar();
-	void recursiveDrawTree(NodeAccessor);
-	bool drawNode(NodeAccessor);
+	void recursiveDrawTree(NodeCPU*);
+	bool drawNode(NodeCPU*);
 
 	void drawGizmos(const Camera&);
 	void drawObjectEditorPanel();
 
 	//
-	void addObject(SDNodeType);
+	bool tryAddObject(SDNodeType);
 public:
 	void setWidgetsActive(bool);
 

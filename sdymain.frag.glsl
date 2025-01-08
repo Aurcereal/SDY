@@ -20,7 +20,7 @@ uniform ivec2 u_ScreenDimensions;
 
 ///
 
-//#define VISUALIZEBOUNDINGBOX
+#define VISUALIZEBOUNDINGBOX
 
 #define PI 3.141592
 #define TAU (2.0*PI)
@@ -49,24 +49,25 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 
 	vec2 searchBounds = vec2(MAXDIST, 0.0);
 	searchStackSize = 0;
-	for(int i=0; i<u_OperationCount; i++) {
+	for(int i=0; i<u_OpNodeCount; i++) {
 		ObjectAccessor accessor;
 		accessor.index = i;
-		accessor.type = u_Operations.nodes[i].operationType;
+		accessor.type = u_OpNodes.nodes[i].operationType;
 		searchStack[i] = accessor;
 		searchStackSize++;
 	}
 
 	for(int i=0; i<u_SphereCount; i++) {
-		Sphere s = u_Spheres.spheres[i];
+		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_SPHERE];
+		Sphere s = u_Spheres.spheres[node.arrIndex];
 
-		vec3 lro = ro + vec3(vec4(s.invTransform[3].xyz, 0.0) * s.invTransform );
+		vec3 lro = ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
 		vec3 boxDim = vec3(2.0*s.r);
 
 		vec2 ts = rayBoxIntersect(lro, ird, boxDim);
 		if(ts.x <= ts.y && ts.y >= 0.0) {
 			ObjectAccessor accessor;
-			accessor.index = i;
+			accessor.index = PRIMCOUNT * i + PRIM_SPHERE;
 			accessor.type = PRIM_SPHERE;
 			searchStack[searchStackSize] = accessor;
 			searchStackSize++;
@@ -77,15 +78,16 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 	}
 
 	for(int i=0; i<u_BoxCount; i++) {
-		Box b = u_Boxes.boxes[i];
+		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_BOX];
+		Box b = u_Boxes.boxes[node.arrIndex];
 
-		vec3 lro = ro + vec3(vec4(b.invTransform[3].xyz, 0.0) * b.invTransform );
+		vec3 lro = ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
 		vec3 boxDim = b.dim*1.732;
 
 		vec2 ts = rayBoxIntersect(lro, ird, boxDim);
 		if(ts.x <= ts.y && ts.y >= 0.0) {
 			ObjectAccessor accessor;
-			accessor.index = i;
+			accessor.index = PRIMCOUNT * i + PRIM_BOX;
 			accessor.type = PRIM_BOX;
 			searchStack[searchStackSize] = accessor;
 			searchStackSize++;
@@ -110,29 +112,27 @@ float sdOperationStack(vec3 p) {
 	}
 
 	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
-	for(int i=searchStackSize-1; i>=u_OperationCount; i--) {
+	for(int i=searchStackSize-1; i>=u_OpNodeCount; i--) {
 		ObjectAccessor accessor = searchStack[i];
-		int parentIndex;
-		switch(accessor.type) {
-			vec3 lp;
+		PrimNode node = u_PrimNodes.nodes[accessor.index];
+		int parentIndex = node.parentIndex;
+		vec3 lp = (node.invTransform * vec4(p, 1.0)).xyz;
+		switch(node.operationType) {
 			case PRIM_SPHERE:
-				Sphere sphere = u_Spheres.spheres[accessor.index];
-				lp = (sphere.invTransform * vec4(p, 1.0)).xyz;
+				Sphere sphere = u_Spheres.spheres[node.arrIndex];
 				dists[i] = length(lp) - sphere.r;
-				parentIndex = sphere.parentIndex;
 				break;
 			case PRIM_BOX:
-				Box box = u_Boxes.boxes[accessor.index];
-				lp = (box.invTransform * vec4(p, 1.0)).xyz;
+				Box box = u_Boxes.boxes[node.arrIndex];
 				dists[i] = sdBox(lp, box.dim);
-				parentIndex = box.parentIndex;
 				break;
 		}
 
-		Node parentNode = u_Operations.nodes[parentIndex];
+		OpNode parentNode = u_OpNodes.nodes[parentIndex];
 		switch(parentNode.operationType) {
 			case OP_MIN:
 				dists[parentIndex] = min(dists[parentIndex], dists[i]);
+				if(i == 3) return dists[i];
 				break;
 			case OP_SMIN:
 				dists[parentIndex] = smin(dists[parentIndex], dists[i], 0.5);
@@ -140,13 +140,13 @@ float sdOperationStack(vec3 p) {
 		}
 	}
 
-	for(int i=u_OperationCount-1; i>=0; i--) {
+	for(int i=u_OpNodeCount-1; i>=0; i--) {
 		// later i dont actually have to add the operations to the stack, need to allocate space for them on dist array is all
 		ObjectAccessor accessor = searchStack[i];
-		Node n = u_Operations.nodes[accessor.index];
-		
+		OpNode n = u_OpNodes.nodes[accessor.index];
+
 		if(n.parentIndex != -1) {
-			Node parentNode = u_Operations.nodes[n.parentIndex];
+			OpNode parentNode = u_OpNodes.nodes[n.parentIndex];
 			switch(parentNode.operationType) {
 				case OP_MIN:
 					dists[n.parentIndex] = min(dists[n.parentIndex], dists[i]);
@@ -188,6 +188,7 @@ vec3 render(vec2 p) {
 	vec3 ro = u_CamPos;
 	vec3 rd = mat3(u_CamRi, u_CamUp, u_CamFo) * normalize(vec3(p*tan(u_fovY*0.5)*vec2(aspect, 1.0), 1.0));
 	vec2 searchBounds = fillSearchStack(ro, 1./rd);
+	searchBounds = vec2(0.0, MAXDIST);
 
 	// The search bounds optimization doesn't seem to help much since we're already hitting the object soon and terminating
 	float dist = trace(ro, rd, searchBounds);

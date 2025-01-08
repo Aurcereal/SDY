@@ -1,67 +1,116 @@
 #include "sdyshader.h"
 #include "objectmanager.h"
 
-SDYShader::SDYShader() : objectUBOHandles(), objectCounts(), operationsUBOHandle(), operationCount(0), Shader() {}
+SDYShader::SDYShader() : paramUBOHandles(), opNodesUBOHandle(), primNodesUBOHandle(), Shader() {}
 
-dict<SDNodeType, string> SDYShader::primToCountUniform = {
+dict<SDNodeType, string> SDYShader::paramToCountUniform = {
+	{OP_MIN, "u_MinCount"},
+	{OP_MAX, "u_MaxCount"},
+	{OP_SMIN, "u_SMinCount"},
+	{OP_SMAX, "u_SMaxCount"},
+
 	{PRIM_SPHERE, "u_SphereCount"},
 	{PRIM_BOX, "u_BoxCount"}
 };
 
+dict<SDNodeType, string> SDYShader::paramToBlockName = {
+	{OP_MIN, "MinsBlock"},
+	{OP_MAX, "MaxesBlock"},
+	{OP_SMIN, "SMinsBlock"},
+	{OP_SMAX, "SMaxesBlock"},
+
+	{PRIM_SPHERE, "SpheresBlock"},
+	{PRIM_BOX, "BoxesBlock"}
+};
+
+string SDYShader::opNodesBlockName = "OpNodesBlock";
+string SDYShader::primNodesBlockName = "PrimNodesBlock";
+
+array<SDNodeType, 6> SDYShader::paramTypes = {
+	OP_MIN, OP_MAX, OP_SMIN, OP_SMAX,
+	PRIM_SPHERE, PRIM_BOX
+};
+
 void SDYShader::setupObjectUBOs() {
-	objectUBOHandles[PRIM_SPHERE] = glGetUniformBlockIndex(programHandle, "SpheresBlock");
-	objectUBOHandles[PRIM_BOX] = glGetUniformBlockIndex(programHandle, "BoxesBlock");
-	uint uboOperationsIndex = glGetUniformBlockIndex(programHandle, "OperationsBlock");
-	glUniformBlockBinding(programHandle, uboOperationsIndex, 2);
-	glUniformBlockBinding(programHandle, objectUBOHandles[PRIM_SPHERE], 0);
-	glUniformBlockBinding(programHandle, objectUBOHandles[PRIM_BOX], 1);
-	
-	// https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
-	glGenBuffers(1, &operationsUBOHandle);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 2, operationsUBOHandle);
-	glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * sizeof(vec4), NULL, GL_STATIC_DRAW);
+	uint blockInd;
+	int currPlacementIndex = 0;
 
-	// turn into funcs later
-	glGenBuffers(1, &objectUBOHandles[PRIM_SPHERE]);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, objectUBOHandles[PRIM_SPHERE]);
-	glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * ObjectManager::getStructSize(PRIM_SPHERE).y, NULL, GL_STATIC_DRAW);
+	blockInd = glGetUniformBlockIndex(programHandle, opNodesBlockName.c_str());
+	glUniformBlockBinding(programHandle, blockInd, currPlacementIndex);
+	glGenBuffers(1, &opNodesUBOHandle);
+	glBindBufferBase(GL_UNIFORM_BUFFER, currPlacementIndex, opNodesUBOHandle);
+	glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * ObjectManager::opNodeByteSize.y, NULL, GL_STATIC_DRAW);
+	currPlacementIndex++;
 
-	glGenBuffers(1, &objectUBOHandles[PRIM_BOX]);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, objectUBOHandles[PRIM_BOX]);
-	glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * ObjectManager::getStructSize(PRIM_BOX).y, NULL, GL_STATIC_DRAW);
+	blockInd = glGetUniformBlockIndex(programHandle, primNodesBlockName.c_str());
+	glUniformBlockBinding(programHandle, blockInd, currPlacementIndex);
+	glGenBuffers(1, &primNodesUBOHandle);
+	glBindBufferBase(GL_UNIFORM_BUFFER, currPlacementIndex, primNodesUBOHandle);
+	glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * ObjectManager::primNodeByteSize.y, NULL, GL_STATIC_DRAW);
+	currPlacementIndex++;
 
-	uniformOperationCount(0);
+	for (SDNodeType type : paramTypes) {
+		uint blockInd = glGetUniformBlockIndex(programHandle, paramToBlockName[type].c_str());
+		glUniformBlockBinding(programHandle, blockInd, currPlacementIndex);
+		glGenBuffers(1, &paramUBOHandles[type]);
+		glBindBufferBase(GL_UNIFORM_BUFFER, currPlacementIndex, paramUBOHandles[type]);
+		glBufferData(GL_UNIFORM_BUFFER, ELEMCOUNT * ObjectManager::getStructSize(type).y, NULL, GL_STATIC_DRAW);
+		currPlacementIndex++;
+	}
+
+	printGLErrorLog();
 }
 
-void SDYShader::uniformOperationCount(int newOperationCount) {
+#include <iostream>
+
+void SDYShader::uniformOpNodeCount(int count) {
 	use();
-	uniformInt("u_OperationCount", newOperationCount);
-	operationCount = newOperationCount;
+	uniformInt("u_OpNodeCount", count);
 }
 
-void SDYShader::uniformObjectCount(int newObjectCount, SDNodeType type) {
+//void SDYShader::uniformPrimNodeCount(int count) {
+//	use();
+//	uniformInt("u_PrimNodeCount", count);
+//}
+
+void SDYShader::uniformParamCount(SDNodeType type, int count) {
 	use();
-	assert(primToCountUniform.count(type) != 0);
-	uniformInt(primToCountUniform[type], newObjectCount);
-	objectCounts[type] = newObjectCount;
+	uniformInt(paramToCountUniform[type], count);
 }
 
-void SDYShader::setObject(int i, SDNodeType type, void* data, bool uniformCount) {
-	assert(objectUBOHandles.count(type) != 0);
-	glBindBuffer(GL_UNIFORM_BUFFER, objectUBOHandles[type]);
+//void SDYShader::uniformOperationCount(int newOperationCount) {
+//	use();
+//	uniformInt("u_OperationCount", newOperationCount);
+//	operationCount = newOperationCount;
+//}
+//
+//void SDYShader::uniformObjectCount(int newObjectCount, SDNodeType type) {
+//	use();
+//	assert(primToCountUniform.count(type) != 0);
+//	uniformInt(primToCountUniform[type], newObjectCount);
+//	objectCounts[type] = newObjectCount;
+//}
+
+void SDYShader::setParamData(int i, SDNodeType type, void* data) {
+	assert(paramUBOHandles.count(type) != 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, paramUBOHandles[type]);
+	printGLErrorLog();
 	ivec2 sizeData = ObjectManager::getStructSize(type);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeData.y * i, sizeData.x, data);
+	if (type != OP_MIN && type != OP_MAX) { // TODO: Temp because they have no data to buffer causes 1281 err
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeData.y * i, sizeData.x, data);
+	}
+	printGLErrorLog();
 	glBindBuffer(GL_UNIFORM_BUFFER, 0); // TODO: do something to prevent constant buffer switching?
-
-	if (uniformCount && i > objectCounts[type] - 1)
-		uniformObjectCount(i + 1, type);
 }
 
-void SDYShader::setOperation(int i, void* data, bool uniformCount) {
-	glBindBuffer(GL_UNIFORM_BUFFER, operationsUBOHandle);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec4) * i, 8, data);
+void SDYShader::setOpNodeData(int i, void* data) {
+	glBindBuffer(GL_UNIFORM_BUFFER, opNodesUBOHandle);
+	glBufferSubData(GL_UNIFORM_BUFFER, ObjectManager::opNodeByteSize.y * i, ObjectManager::opNodeByteSize.x, data);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-	if (uniformCount && i > operationCount - 1)
-		uniformOperationCount(i + 1);
+void SDYShader::setPrimNodeData(int i, void* data) {
+	glBindBuffer(GL_UNIFORM_BUFFER, primNodesUBOHandle);
+	glBufferSubData(GL_UNIFORM_BUFFER, ObjectManager::primNodeByteSize.y * i, ObjectManager::primNodeByteSize.x, data);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

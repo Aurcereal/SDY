@@ -2,24 +2,31 @@
 
 #include "shader.h"
 #include "sdydatadefines.glsl"
+#include <array>
 
 using namespace std;
 
 class SDYShader : public Shader {
 private:
-	dict<SDNodeType, uint> objectUBOHandles;
-	dict<SDNodeType, int> objectCounts;
-	static dict<SDNodeType, string> primToCountUniform;
+	dict<SDNodeType, uint> paramUBOHandles;
+	uint opNodesUBOHandle;
+	uint primNodesUBOHandle;
 
-	uint operationsUBOHandle;
-	int operationCount;
+	static dict<SDNodeType, string> paramToCountUniform;
+	static dict<SDNodeType, string> paramToBlockName;
+	static string opNodesBlockName;
+	static string primNodesBlockName;
+	static array<SDNodeType, 6> paramTypes;
 
-	void uniformOperationCount(int);
-	void uniformObjectCount(SDNodeType, int);
+	
 public:
 	SDYShader();
 	void setupObjectUBOs();
 
-	void setObject(int i, SDNodeType, void* data, bool uniformCount = true);
-	void setOperation(int i, void* data, bool uniformCount = true);
+	void setParamData(int i, SDNodeType, void* data);
+	void setOpNodeData(int i, void* data);
+	void setPrimNodeData(int i, void* data);
+
+	void uniformOpNodeCount(int);
+	void uniformParamCount(SDNodeType, int);
 };

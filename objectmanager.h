@@ -4,98 +4,72 @@
 #include <vector>
 #include "sdyshader.h"
 #include "sdydatadefines.glsl"
-#include "editableentity.h"
+#include "eulerentity.h"
+#include "nodecpu.h"
 
-struct SDObject {
-	mat4 invTransform;
+#include "gpunodedata.h"
+#include "gpuparamdata.h"
+
+class GPUNodeData;
+class GPUParamData;
+class NodeCPU;
+
+// work on this after u have parenting transforms in place
+struct SpaceOpNode {
 	int parentIndex;
-	int distortionIndex; // to do space ops, we'll store a tree of distortion types and parameters, then another tree that maps onto it that glsl can edit storing the vec3 p every dist sample
-	SDObject(mat4, int);
+	int distortionType; //should have a NOP (no operation) type (for the separation between branches), move all these glsl type structs to separate header
+	int dataIndex;
 };
 
-struct Sphere : public SDObject {
-	float r; // maybe remove radius when/if transform scale good
-	Sphere(mat4, int, float);
-};
+//struct NodeAccessor {
+//	SDNodeType type;
+//	int index;
+//	inline NodeAccessor(SDNodeType type, int index) : type(type), index(index) {}
+//	inline bool isLeaf() { return type >= 0; }
+//	inline bool isNull() { return index == -1; }
+//	inline bool operator==(const NodeAccessor& other) { return type == other.type && index == other.index; }
+//	inline static NodeAccessor getRoot() { return NodeAccessor(-1, 0); }
+//	inline static NodeAccessor getNull() { return NodeAccessor(0, -1); }
+//};
 
-struct Box : public SDObject {
-	vec2 dummy; // temp data alignment fix, wanna rearrange variables in c++ even with inheritance but how
-	vec3 dim; // same idea as sphere where u could remove
-	Box(mat4, int, vec3);
-};
-
-struct Min { };
-struct Max { };
-struct SMin {
-	float smoothness;
-};
-struct SMax {
-	float smoothness;
-};
-
-struct OperationNode {
-	int parentIndex;
-	int operationType;
-	float boundingBoxMult = 1.0f; // !
-};
-
-struct NodeAccessor {
-	SDNodeType type;
-	int index;
-	inline NodeAccessor(SDNodeType type, int index) : type(type), index(index) {}
-	inline bool isLeaf() { return type >= 0; }
-	inline bool isNull() { return index == -1; }
-	inline bool operator==(const NodeAccessor& other) { return type == other.type && index == other.index; }
-	inline static NodeAccessor getRoot() { return NodeAccessor(-1, 0); }
-	inline static NodeAccessor getNull() { return NodeAccessor(0, -1); }
+struct GPUSpaceDistortionData {
+	int spaceBranchCount;
+	vector<SpaceOpNode> spaceBranches;
 };
 
 class ObjectManager {
 private:
-	static inline bool isSmooth(SDNodeType type) {
-		return type == OP_SMIN || type == OP_SMAX;
-	}
-
-	vector<Min> minOps;
-	vector<Max> maxOps;
-	vector<SMin> sminOps;
-	vector<SMax> smaxOps;
-
-	// Objects
-	vector<pair<Sphere, EulerEntity>> spheres;
-	vector<pair<Box, EulerEntity>> boxes;
-
-	vector<OperationNode> operations;
-	vector<vector<NodeAccessor>> childArray;
-
-	static dict<SDNodeType, ivec2> sizeMap;
-	static dict<SDNodeType, string> classMap;
-
-	dict<int, string> nameMap;
-
-	pair<SDObject*, EulerEntity*> getObjectOfNode(NodeAccessor);
-
 	SDYShader* shader;
+
+	//
+	vector<uPtr<NodeCPU>> nodes;
+
+	//
+	static dict<SDNodeType, ivec2> byteSizeMap;
+	static dict<SDNodeType, string> defaultNameMap;
+
+	//
+	GPUNodeData nodeData;
+	GPUParamData paramData;
+	
 public:
+	friend class GUIManager;
+	friend class NodeCPU;
+	friend class GPUParamData;  friend class GPUNodeData;
+
+	static ivec2 opNodeByteSize;
+	static ivec2 primNodeByteSize;
+
 	ObjectManager(SDYShader*);
 
-	friend class GUIManager;
+	NodeCPU* root; // always a MIN OP
 
-	void addSphere(int parentIndex, vec3 pos, vec3 euler, float r);
-	void addBox(int parentIndex, vec3 pos, vec3 euler, vec3 dim);
+	static string getDefaultName(SDNodeType);
 
-	void addOperation(int parentIndex, SDNodeType type);
+	NodeCPU* addObject(NodeCPU* parent, SDNodeType, vec3 pos, vec3 euler);
+	NodeCPU* addOperation(NodeCPU* parent, SDNodeType type, vec3 pos, vec3 euler);
 
 	static ivec2 getStructSize(SDNodeType);
 
-	bool nodeContainsObject(NodeAccessor);
-	
-	void getTransformationOfNode(NodeAccessor, vec3* translation, vec3* euler, mat4* transform);
-	void setTranslationEulerOfNode(NodeAccessor, vec3 translation, vec3 euler);
-	void setTranslationOfNode(NodeAccessor, vec3 translation);
-	void setEulerOfNode(NodeAccessor, vec3 euler);
-
-	inline static int accessorToKey(NodeAccessor a) { return a.index * OPCOUNT + a.type; }
-	string getName(NodeAccessor);
-	void setName(NodeAccessor, string);
+	void init();
 };

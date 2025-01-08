@@ -6,9 +6,11 @@ class EulerEntity : public Entity {
 private:
 	vec3 euler; // ZYX
 public:
-	vec3 getEuler();
+	vec3 getEuler() const;
 	void setEuler(vec3);
 
-	vec3 getPos();
+	vec3 getPos() const;
 	void setPos(vec3);
+
+	void setTransform(const mat4&);
 };
