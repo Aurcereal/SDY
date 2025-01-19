@@ -8,12 +8,30 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 	type(type),
 	entity(),
 	name(string(ObjectManager::getDefaultName(type)).append(" ").append(std::to_string(objectManager->paramData.getCount(type)))),
-	param(objectManager, type)
+	param(objectManager, type, this)
 {
+
 	int paramInd = param.getGpuIndex();
 	gpuArrIndex = type >= 0 ?
 		objectManager->nodeData.pushPrimNode(parent->gpuArrIndex, paramInd, type, 0) :
 		objectManager->nodeData.pushOpNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
+
+	recomputeBoundingBoxMults();
+}
+
+void NodeCPU::recomputeBoundingBoxMults() {
+	float localMult = type == OP_SMIN ? 1.0f + *((float*)param.getParameter("Smoothness")) : 1.0f; // Probably shouldn't be linear later
+	boundingBoxMult = parent != nullptr ? glm::max(localMult, parent->boundingBoxMult) : localMult;
+
+	for (auto& child : children)
+		child->recomputeBoundingBoxMults();
+
+	// BBX Mult only goes on GPU if it's an object
+	if (hasObject()) {
+		PrimNodeGPU* obj = objectManager->nodeData.getPrimNode(gpuArrIndex);
+		obj->boundingBoxMult = boundingBoxMult;
+		objectManager->nodeData.setPrimNode(gpuArrIndex, obj);
+	}
 }
 
 void NodeCPU::recomputeWorldTransforms() {

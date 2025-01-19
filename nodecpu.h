@@ -50,9 +50,15 @@ public:
 	SDNodeType type;
 	int gpuArrIndex;
 
-	// rn bit useless since isLeaf() == hasObject() always
+	// rn isLeaf() == hasObject()
 	inline bool isLeaf() const { return children.empty(); }
 	inline bool hasObject() const { return type >= 0; }
 
+	//
+	inline void onUpdateParam() { if (type == OP_SMIN) recomputeBoundingBoxMults(); }
+	void recomputeBoundingBoxMults();
+	float boundingBoxMult;
+
+	//
 	ParamCPU param;
 };

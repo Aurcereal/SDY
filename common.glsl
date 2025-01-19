@@ -6,6 +6,13 @@ float smin(float d1, float d2, float k) {
 	return min(d1, d2) + h;
 }
 
+float smax(float d1, float d2, float k) {
+	float d = abs(d1-d2)/k;
+	float w = -pow(max(0.0, 1.-d), 2.);
+	float h = 0.25 * k * w;
+	return max(d1, d2) - h;
+}
+
 // SDFs
 float sdBox(vec3 p, vec3 dim) {
 	p = abs(p) - dim*.5;

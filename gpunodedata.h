@@ -11,7 +11,6 @@ struct OpNodeGPU {
 	int parentIndex;
 	int arrIndex;
 	int operationType;
-	//float boundingBoxMult = 1.0f; // !
 };
 
 struct PrimNodeGPU {
@@ -20,6 +19,7 @@ struct PrimNodeGPU {
 	int arrIndex;
 	int operationType;
 	int distortionIndex;
+	float boundingBoxMult = 1.0f;
 };
 
 struct GPUNodeData {

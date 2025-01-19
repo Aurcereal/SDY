@@ -31,6 +31,7 @@ int GPUNodeData::pushPrimNode(int parentIndex, int arrIndex, SDNodeType type, in
 	node.operationType = type;
 	node.distortionIndex = distortionIndex;
 	node.invTransform = mat4(1.0f);
+	node.boundingBoxMult = 1.0f;
 
 	objectManager->shader->setPrimNodeData(placementIndex, &node);
 	return placementIndex;

@@ -63,7 +63,7 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 
 		vec3 lro = (node.invTransform * vec4(ro,1.)).xyz; //ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
 		vec3 lrd = normalize((node.invTransform * vec4(rd, 0.)).xyz);
-		vec3 boxDim = vec3(2.0*s.r);
+		vec3 boxDim = vec3(2.0*s.r) * node.boundingBoxMult;
 
 		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
 		if(ts.x <= ts.y && ts.y >= 0.0) {
@@ -84,7 +84,7 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 
 		vec3 lro = (node.invTransform * vec4(ro, 1.)).xyz;
 		vec3 lrd = normalize((node.invTransform * vec4(rd, 0.)).xyz);
-		vec3 boxDim = b.dim;
+		vec3 boxDim = b.dim * node.boundingBoxMult;
 
 		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
 		if(ts.x <= ts.y && ts.y >= 0.0) {
@@ -134,10 +134,9 @@ float sdOperationStack(vec3 p) {
 		switch(parentNode.operationType) {
 			case OP_MIN:
 				dists[parentIndex] = min(dists[parentIndex], dists[i]);
-				if(i == 3) return dists[i];
 				break;
 			case OP_SMIN:
-				dists[parentIndex] = smin(dists[parentIndex], dists[i], 0.5);
+				dists[parentIndex] = smin(dists[parentIndex], dists[i], u_SMins.smins[parentNode.arrIndex].smoothness);
 				break;
 		}
 	}
@@ -152,6 +151,9 @@ float sdOperationStack(vec3 p) {
 			switch(parentNode.operationType) {
 				case OP_MIN:
 					dists[n.parentIndex] = min(dists[n.parentIndex], dists[i]);
+					break;
+				case OP_SMIN:
+					dists[n.parentIndex] = smin(dists[n.parentIndex], dists[i], u_SMins.smins[parentNode.arrIndex].smoothness);
 					break;
 			}
 		}

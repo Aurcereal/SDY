@@ -63,6 +63,7 @@ struct PrimNode {
 	int arrIndex;
 	int operationType;
 	int distortionIndex;
+	float boundingBoxMult;
 };
 
 layout (std140) uniform OpNodesBlock {

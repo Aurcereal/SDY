@@ -54,6 +54,13 @@ bool GUIManager::tryAddObject(SDNodeType type) {
 	return true;
 }
 
+bool GUIManager::tryAddOperation(SDNodeType type) {
+	assert(type < 0);
+	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
+	selectedNode = objectManager->addOperation(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
+	return true;
+}
+
 void GUIManager::drawMenuBar() {
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("Add Object")) {
@@ -70,6 +77,23 @@ void GUIManager::drawMenuBar() {
 					tryAddObject(i);
 			}
 		}
+		
+		if (ImGui::BeginMenu("Add Operation")) {
+			array<bool, 4> addOperationToggles;
+			addOperationToggles.fill(false);
+
+			ImGui::MenuItem("Union", nullptr, &addOperationToggles[0]);
+			ImGui::MenuItem("Smooth Union", nullptr, &addOperationToggles[1]);
+			ImGui::MenuItem("Intersection", nullptr, &addOperationToggles[2]);
+			ImGui::MenuItem("Smooth Intersection", nullptr, &addOperationToggles[3]);
+			ImGui::EndMenu();
+
+			for (int i = 0; i < addOperationToggles.size(); i++) {
+				if (addOperationToggles[i])
+					tryAddOperation(-1 - i);
+			}
+		}
+
 		ImGui::EndMenuBar();
 	}
 }

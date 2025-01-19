@@ -21,17 +21,6 @@ struct SpaceOpNode {
 	int dataIndex;
 };
 
-//struct NodeAccessor {
-//	SDNodeType type;
-//	int index;
-//	inline NodeAccessor(SDNodeType type, int index) : type(type), index(index) {}
-//	inline bool isLeaf() { return type >= 0; }
-//	inline bool isNull() { return index == -1; }
-//	inline bool operator==(const NodeAccessor& other) { return type == other.type && index == other.index; }
-//	inline static NodeAccessor getRoot() { return NodeAccessor(-1, 0); }
-//	inline static NodeAccessor getNull() { return NodeAccessor(0, -1); }
-//};
-
 struct GPUSpaceDistortionData {
 	int spaceBranchCount;
 	vector<SpaceOpNode> spaceBranches;

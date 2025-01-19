@@ -2,7 +2,7 @@
 #include "imguizmo/ImGuizmo.h"
 
 ivec2 ObjectManager::opNodeByteSize = ivec2(12, sizeof(vec4));
-ivec2 ObjectManager::primNodeByteSize = ivec2(sizeof(vec4) * 5, sizeof(vec4) * 5);
+ivec2 ObjectManager::primNodeByteSize = ivec2(sizeof(float) * 21, sizeof(vec4) * 6);
 
 ObjectManager::ObjectManager(SDYShader* shader) : shader(shader), root(nullptr), nodeData(this), paramData(this) {}
 
