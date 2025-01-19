@@ -4,7 +4,7 @@
 
 struct InputBundle {
 	bool w, a, s, d, q, e, r, f3;
-	bool wDown, rDown, f3Down;
+	bool wDown, eDown, rDown, f3Down;
 	vec2 mousePos;
 	InputBundle();
 	void update(GLFWwindow*);

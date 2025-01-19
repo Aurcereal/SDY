@@ -1,5 +1,6 @@
 #pragma once
 
+#include "paramcpu.h"
 #include "helperinclude.h"
 #include "sdydatadefines.glsl"
 #include "eulerentity.h"
@@ -19,10 +20,10 @@ private:
 
 	vector<NodeCPU*> children;
 	const NodeCPU* parent;
+
+	bool transformChildren;
 public:
 	friend class GUIManager;
-
-	string name;
 
 	NodeCPU(ObjectManager*, const NodeCPU* parent, SDNodeType);
 
@@ -31,15 +32,19 @@ public:
 	/// </summary>
 	void recomputeWorldTransforms(); // private?
 	const mat4& getWorldTransform() const;
-	void getLocalPosEuler(vec3* pos, vec3* euler) const;
+	void getLocalPosEulerScale(vec3* pos, vec3* euler, vec3* scale) const;
 	void setLocalTransform(mat4);
 	void setLocalPos(vec3);
 	void setLocalEuler(vec3);
-	void setLocalPosEuler(vec3 pos, vec3 euler);
+	void setLocalScale(vec3);
+	void setLocalPosEulerScale(vec3 pos, vec3 euler, vec3 scale);
 	void setWorldTransform(mat4);
 
 	//
 	void addChild(NodeCPU*);
+
+	//
+	string name;
 
 	//
 	SDNodeType type;
@@ -48,4 +53,6 @@ public:
 	// rn bit useless since isLeaf() == hasObject() always
 	inline bool isLeaf() const { return children.empty(); }
 	inline bool hasObject() const { return type >= 0; }
+
+	ParamCPU param;
 };

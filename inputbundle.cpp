@@ -5,6 +5,7 @@ InputBundle::InputBundle() : mousePos(-1.0f) { }
 
 void InputBundle::update(GLFWwindow* window) {
 	wDown = glfwGetKey(window, GLFW_KEY_W) && !w;
+	eDown = glfwGetKey(window, GLFW_KEY_E) && !e;
 	rDown = glfwGetKey(window, GLFW_KEY_R) && !r;
 	f3Down = glfwGetKey(window, GLFW_KEY_F3) && !f3;
 

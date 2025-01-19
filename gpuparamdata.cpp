@@ -35,6 +35,29 @@ void GPUParamData::setParamData(SDNodeType type, int i, void* data) {
 	objectManager->shader->setParamData(i, type, data);
 }
 
+void GPUParamData::updateParamDataOnGPU(SDNodeType type, int i) {
+	void* data = nullptr;
+	switch (type) {
+	case OP_MIN:
+		data = &minOps[i]; break;
+	case OP_MAX:
+		data = &maxOps[i]; break;
+	case OP_SMIN:
+		data = &sminOps[i]; break;
+	case OP_SMAX:
+		data = &smaxOps[i]; break;
+	case PRIM_SPHERE:
+		data = &spheres[i]; break;
+	case PRIM_BOX:
+		data = &boxes[i]; break;
+	default:
+		assert(false);
+		break;
+	}
+
+	objectManager->shader->setParamData(i, type, data);
+}
+
 int GPUParamData::pushDefaultParamData(SDNodeType type) {
 	int i;
 	void* data = nullptr;

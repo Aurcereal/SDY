@@ -7,18 +7,24 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 	invWorldTransform(parent != nullptr ? parent->invWorldTransform : mat4()),
 	type(type),
 	entity(),
-	name(string(ObjectManager::getDefaultName(type)).append(" ").append(std::to_string(objectManager->paramData.getCount(type))))
+	name(string(ObjectManager::getDefaultName(type)).append(" ").append(std::to_string(objectManager->paramData.getCount(type)))),
+	param(objectManager, type)
 {
-	int paramInd = objectManager->paramData.pushDefaultParamData(type);
+	int paramInd = param.getGpuIndex();
 	gpuArrIndex = type >= 0 ?
 		objectManager->nodeData.pushPrimNode(parent->gpuArrIndex, paramInd, type, 0) :
 		objectManager->nodeData.pushOpNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
 }
 
 void NodeCPU::recomputeWorldTransforms() {
-	if (parent != nullptr) {
-		worldTransform = parent->worldTransform * entity.getTransform();
-		invWorldTransform = entity.getInverseTransform() * parent->invWorldTransform;
+
+	const NodeCPU* transformParent = parent;
+	while (transformParent != nullptr && !transformParent->transformChildren)
+		transformParent = transformParent->parent;
+
+	if (transformParent != nullptr) {
+		worldTransform = transformParent->worldTransform * entity.getTransform();
+		invWorldTransform = entity.getInverseTransform() * transformParent->invWorldTransform;
 	}
 	else {
 		worldTransform = entity.getTransform();
@@ -29,7 +35,7 @@ void NodeCPU::recomputeWorldTransforms() {
 	}
 
 	// Transform only goes on the GPU if it's an object
-	if (type >= 0) {
+	if (hasObject()) {
 		PrimNodeGPU* obj = objectManager->nodeData.getPrimNode(gpuArrIndex);
 		obj->invTransform = invWorldTransform;
 		objectManager->nodeData.setPrimNode(gpuArrIndex, obj);
@@ -38,9 +44,10 @@ void NodeCPU::recomputeWorldTransforms() {
 const mat4& NodeCPU::getWorldTransform() const {
 	return worldTransform;
 }
-void NodeCPU::getLocalPosEuler(vec3* pos, vec3* euler) const {
+void NodeCPU::getLocalPosEulerScale(vec3* pos, vec3* euler, vec3* scale) const {
 	if (pos != nullptr) *pos = entity.getPos();
 	if (euler != nullptr) *euler = entity.getEuler();
+	if (scale != nullptr) *scale = entity.getScale();
 }
 void NodeCPU::setLocalTransform(mat4 localTransform) {
 	entity.setTransform(localTransform);
@@ -54,9 +61,14 @@ void NodeCPU::setLocalEuler(vec3 euler) {
 	entity.setEuler(euler);
 	recomputeWorldTransforms();
 }
-void NodeCPU::setLocalPosEuler(vec3 pos, vec3 euler) {
+void NodeCPU::setLocalScale(vec3 scale) {
+	entity.setScale(scale);
+	recomputeWorldTransforms();
+}
+void NodeCPU::setLocalPosEulerScale(vec3 pos, vec3 euler, vec3 scale) {
 	entity.setPos(pos);
 	entity.setEuler(euler);
+	entity.setScale(scale);
 	recomputeWorldTransforms();
 }
 void NodeCPU::setWorldTransform(mat4 worldTransform) {

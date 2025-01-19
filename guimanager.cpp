@@ -50,7 +50,7 @@ bool GUIManager::tryAddObject(SDNodeType type) {
 	assert(type >= 0);
 	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
 	if (selectedNode != nullptr && selectedNode->type >= 0) return false;
-	selectedNode = objectManager->addObject(parentNode, type, vec3(0.0f), vec3(0.0f));
+	selectedNode = objectManager->addObject(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 	return true;
 }
 
@@ -80,6 +80,8 @@ void GUIManager::processInput(const InputBundle& input) {
 			currOperation = ImGuizmo::OPERATION::TRANSLATE;
 		if (input.rDown)
 			currOperation = ImGuizmo::OPERATION::ROTATE;
+		if (input.eDown)
+			currOperation = ImGuizmo::OPERATION::SCALE;
 	}
 }
 
@@ -117,18 +119,42 @@ void GUIManager::drawObjectEditorPanel() {
 	if (selectedNode != nullptr) {
 		ImGui::SeparatorText("Edit Transform");
 
-		vec3 p, e;
-		selectedNode->getLocalPosEuler(&p, &e);
+		vec3 p, e, s;
+		selectedNode->getLocalPosEulerScale(&p, &e, &s);
 
 		float pos[3] = { p.x, p.y, p.z };
 		float euler[3] = { e.x, e.y, e.z };
+		float scale[3] = { s.x, s.y, s.z };
 
-		bool changed = false;
-		changed |= ImGui::InputFloat3("Translate", pos);
-		changed |= ImGui::InputFloat3("Euler", euler);
+		bool transformChanged = false;
+		transformChanged |= ImGui::InputFloat3("Translate", pos);
+		transformChanged |= ImGui::InputFloat3("Euler", euler);
+		transformChanged |= ImGui::InputFloat3("Scale", scale);
 
-		if (changed)
-			selectedNode->setLocalPosEuler(vec3(pos[0], pos[1], pos[2]), vec3(euler[0], euler[1], euler[2]));
+		if (transformChanged)
+			selectedNode->setLocalPosEulerScale(vec3(pos[0], pos[1], pos[2]), vec3(euler[0], euler[1], euler[2]), vec3(scale[0], scale[1], scale[2]));
+
+		bool paramsChanged = false;
+
+		for (InputField& field : *selectedNode->param.getInputFields()) {
+			switch (field.type) {
+			case InputField::INT:
+				paramsChanged |= ImGui::InputInt(field.name.c_str(), (int*) field.data);
+				break;
+			case InputField::FLOAT:
+				paramsChanged |= ImGui::InputFloat(field.name.c_str(), (float*) field.data);
+				break;
+			case InputField::VEC2:
+				paramsChanged |= ImGui::InputFloat2(field.name.c_str(), glm::value_ptr(*((vec2*)field.data)));
+				break;
+			case InputField::VEC3:
+				paramsChanged |= ImGui::InputFloat3(field.name.c_str(), glm::value_ptr(*((vec3*)field.data)));
+				break;
+			}
+
+			if (paramsChanged)
+				selectedNode->param.updateParams();
+		}
 	}
 	else {
 		ImGui::Text("No primitive selected.");

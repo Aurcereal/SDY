@@ -42,7 +42,7 @@ int searchStackSize;
 
 float debugVal;
 
-vec2 fillSearchStack(vec3 ro, vec3 ird) {
+vec2 fillSearchStack(vec3 ro, vec3 rd) {
 	// first calculate bounding box dim, then try buffering it in
 	// youngest child setting the parent thing won't work blindly here, may have to set something here in the shader cuz youngest child may be dead
 	// but hey distance array can be shorter if i cant figure smth out
@@ -61,10 +61,11 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_SPHERE];
 		Sphere s = u_Spheres.spheres[node.arrIndex];
 
-		vec3 lro = ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
+		vec3 lro = (node.invTransform * vec4(ro,1.)).xyz; //ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
+		vec3 lrd = normalize((node.invTransform * vec4(rd, 0.)).xyz);
 		vec3 boxDim = vec3(2.0*s.r);
 
-		vec2 ts = rayBoxIntersect(lro, ird, boxDim);
+		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
 		if(ts.x <= ts.y && ts.y >= 0.0) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_SPHERE;
@@ -81,10 +82,11 @@ vec2 fillSearchStack(vec3 ro, vec3 ird) {
 		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_BOX];
 		Box b = u_Boxes.boxes[node.arrIndex];
 
-		vec3 lro = ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
-		vec3 boxDim = b.dim*1.732;
+		vec3 lro = (node.invTransform * vec4(ro, 1.)).xyz;
+		vec3 lrd = normalize((node.invTransform * vec4(rd, 0.)).xyz);
+		vec3 boxDim = b.dim;
 
-		vec2 ts = rayBoxIntersect(lro, ird, boxDim);
+		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
 		if(ts.x <= ts.y && ts.y >= 0.0) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_BOX;
@@ -187,7 +189,7 @@ vec3 render(vec2 p) {
 
 	vec3 ro = u_CamPos;
 	vec3 rd = mat3(u_CamRi, u_CamUp, u_CamFo) * normalize(vec3(p*tan(u_fovY*0.5)*vec2(aspect, 1.0), 1.0));
-	vec2 searchBounds = fillSearchStack(ro, 1./rd);
+	vec2 searchBounds = fillSearchStack(ro, rd);
 	searchBounds = vec2(0.0, MAXDIST);
 
 	// The search bounds optimization doesn't seem to help much since we're already hitting the object soon and terminating

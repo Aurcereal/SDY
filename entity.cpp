@@ -1,12 +1,12 @@
 #include "entity.h"
 #include <iostream>
 
-Entity::Entity() : ri(1.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f), fo(0.0f, 0.0f, 1.0f), position(0.0f) {}
+Entity::Entity() : ri(1.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f), fo(0.0f, 0.0f, 1.0f), position(0.0f), scale(1.0f) {}
 
 mat4 Entity::getTransform() const {
-	return glm::translate(mat4(1.0f), position)* mat4(vec4(ri, 0.0f), vec4(up, 0.0f), vec4(fo, 0.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	return glm::translate(mat4(1.0f), position)* mat4(vec4(scale.x * ri, 0.0f), vec4(scale.y * up, 0.0f), vec4(scale.z * fo, 0.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 mat4 Entity::getInverseTransform() const {
-	return glm::transpose(mat4(vec4(ri, 0.0f), vec4(up, 0.0f), vec4(fo, 0.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f))) * glm::translate(mat4(1.0f), -position);
+	return glm::transpose(mat4(vec4(1.0f/scale.x * ri, 0.0f), vec4(1.0f/scale.y * up, 0.0f), vec4(1.0f/scale.z * fo, 0.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f))) * glm::translate(mat4(1.0f), -position);
 }

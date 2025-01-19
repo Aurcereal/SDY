@@ -49,6 +49,7 @@ public:
 	inline GPUParamData(ObjectManager* objectManager) : objectManager(objectManager) {}
 
 	void setParamData(SDNodeType type, int i, void* data);
+	void updateParamDataOnGPU(SDNodeType type, int i);
 	void* getParamData(SDNodeType type, int i);
 	int pushDefaultParamData(SDNodeType type);
 	inline int getCount(SDNodeType type) { if (paramCount.count(type) == 0) paramCount[type] = 0; return paramCount[type]; }
