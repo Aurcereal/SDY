@@ -49,7 +49,7 @@ void GUIManager::drawImGuiElements(const Camera& camera) {
 bool GUIManager::tryAddObject(SDNodeType type) {
 	assert(type >= 0);
 	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
-	if (selectedNode != nullptr && selectedNode->type >= 0) return false;
+	if (parentNode->type >= 0) return false;
 	selectedNode = objectManager->addObject(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 	return true;
 }
@@ -57,6 +57,7 @@ bool GUIManager::tryAddObject(SDNodeType type) {
 bool GUIManager::tryAddOperation(SDNodeType type) {
 	assert(type < 0);
 	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
+	if (parentNode->type >= 0) return false;
 	selectedNode = objectManager->addOperation(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 	return true;
 }
@@ -102,9 +103,9 @@ void GUIManager::processInput(const InputBundle& input) {
 	if (widgetsEnabled) {
 		if (input.wDown)
 			currOperation = ImGuizmo::OPERATION::TRANSLATE;
-		if (input.rDown)
-			currOperation = ImGuizmo::OPERATION::ROTATE;
 		if (input.eDown)
+			currOperation = ImGuizmo::OPERATION::ROTATE;
+		if (input.rDown)
 			currOperation = ImGuizmo::OPERATION::SCALE;
 	}
 }

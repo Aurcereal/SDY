@@ -20,7 +20,7 @@ uniform ivec2 u_ScreenDimensions;
 
 ///
 
-#define VISUALIZEBOUNDINGBOX
+//#define VISUALIZEBOUNDINGBOX
 
 #define PI 3.141592
 #define TAU (2.0*PI)
@@ -31,9 +31,9 @@ uniform ivec2 u_ScreenDimensions;
 
 #include "common.glsl"
 
+// If this doesn't expand we can just use an int (no vec4 alignment)
 struct ObjectAccessor {
 	int index;
-	SDNodeType type;
 };
 
 float dists[MAXSEARCHSIZE];
@@ -49,13 +49,6 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 
 	vec2 searchBounds = vec2(MAXDIST, 0.0);
 	searchStackSize = 0;
-	for(int i=0; i<u_OpNodeCount; i++) {
-		ObjectAccessor accessor;
-		accessor.index = i;
-		accessor.type = u_OpNodes.nodes[i].operationType;
-		searchStack[i] = accessor;
-		searchStackSize++;
-	}
 
 	for(int i=0; i<u_SphereCount; i++) {
 		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_SPHERE];
@@ -69,7 +62,6 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 		if(ts.x <= ts.y && ts.y >= 0.0) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_SPHERE;
-			accessor.type = PRIM_SPHERE;
 			searchStack[searchStackSize] = accessor;
 			searchStackSize++;
 
@@ -90,7 +82,6 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 		if(ts.x <= ts.y && ts.y >= 0.0) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_BOX;
-			accessor.type = PRIM_BOX;
 			searchStack[searchStackSize] = accessor;
 			searchStackSize++;
 
@@ -103,48 +94,44 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 }
 
 float sdOperationStack(vec3 p) {
-	for(int i=0; i<searchStackSize; i++) {
-		// use bit slicing operations where a bit can correspond to min or max and another bit can correpsond to smooth or not
-		//if(u_Operations.nodes[searchStack[i]].operationType == OP_MIN || u_Operations.nodes[searchStack[i]].operationType == OP_SMIN) {
-		//	dists[i] = MAXDIST;
-		//} else {
-		//	dists[i] = -MAXDIST;
-		//}
-		dists[i] = MAXDIST;
+	for(int i=0; i<u_OpNodeCount; i++) {
+		// later mabe use bit slicing operations where a bit can correspond to min or max and another bit can correpsond to smooth or not
+		dists[i] = u_OpNodes.nodes[i].operationType <= -3 ? -MAXDIST : MAXDIST;
 	}
 
-	// for smin and stuff can have like a bounding box modifier like i guess... float boundingBoxmMultSTack[16] ?? .. or a similar struct. bit early to tell
-	for(int i=searchStackSize-1; i>=u_OpNodeCount; i--) {
+	for(int i=searchStackSize-1; i>=0; i--) {
 		ObjectAccessor accessor = searchStack[i];
 		PrimNode node = u_PrimNodes.nodes[accessor.index];
 		int parentIndex = node.parentIndex;
+
+		float sd;
+
 		vec3 lp = (node.invTransform * vec4(p, 1.0)).xyz;
+
 		switch(node.operationType) {
 			case PRIM_SPHERE:
 				Sphere sphere = u_Spheres.spheres[node.arrIndex];
-				dists[i] = length(lp) - sphere.r;
+				sd = length(lp) - sphere.r;
 				break;
 			case PRIM_BOX:
 				Box box = u_Boxes.boxes[node.arrIndex];
-				dists[i] = sdBox(lp, box.dim);
+				sd = sdBox(lp, box.dim);
 				break;
 		}
 
 		OpNode parentNode = u_OpNodes.nodes[parentIndex];
 		switch(parentNode.operationType) {
 			case OP_MIN:
-				dists[parentIndex] = min(dists[parentIndex], dists[i]);
+				dists[parentIndex] = min(dists[parentIndex], sd);
 				break;
 			case OP_SMIN:
-				dists[parentIndex] = smin(dists[parentIndex], dists[i], u_SMins.smins[parentNode.arrIndex].smoothness);
+				dists[parentIndex] = smin(dists[parentIndex], sd, u_SMins.smins[parentNode.arrIndex].smoothness);
 				break;
 		}
 	}
 
 	for(int i=u_OpNodeCount-1; i>=0; i--) {
-		// later i dont actually have to add the operations to the stack, need to allocate space for them on dist array is all
-		ObjectAccessor accessor = searchStack[i];
-		OpNode n = u_OpNodes.nodes[accessor.index];
+		OpNode n = u_OpNodes.nodes[i];
 
 		if(n.parentIndex != -1) {
 			OpNode parentNode = u_OpNodes.nodes[n.parentIndex];

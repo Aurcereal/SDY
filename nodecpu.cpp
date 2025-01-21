@@ -8,7 +8,8 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 	type(type),
 	entity(),
 	name(string(ObjectManager::getDefaultName(type)).append(" ").append(std::to_string(objectManager->paramData.getCount(type)))),
-	param(objectManager, type, this)
+	param(objectManager, type, this),
+	transformChildren(true)
 {
 
 	int paramInd = param.getGpuIndex();
@@ -20,7 +21,7 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 }
 
 void NodeCPU::recomputeBoundingBoxMults() {
-	float localMult = type == OP_SMIN ? 1.0f + *((float*)param.getParameter("Smoothness")) : 1.0f; // Probably shouldn't be linear later
+	float localMult = type == OP_SMIN ? 1.0f + 1.4f * *((float*)param.getParameter("Smoothness")) : 1.0f; // Probably shouldn't be linear later
 	boundingBoxMult = parent != nullptr ? glm::max(localMult, parent->boundingBoxMult) : localMult;
 
 	for (auto& child : children)
