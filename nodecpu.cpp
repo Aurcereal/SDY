@@ -18,6 +18,14 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 		objectManager->nodeData.pushOpNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
 
 	recomputeBoundingBoxMults();
+
+	// Handle Special Cases
+	switch (type) {
+	case OP_MAX:
+	case OP_SMAX:
+		setVisible(false, false);
+		break;
+	}
 }
 
 void NodeCPU::recomputeBoundingBoxMults() {
@@ -96,4 +104,31 @@ void NodeCPU::setWorldTransform(mat4 worldTransform) {
 
 void NodeCPU::addChild(NodeCPU* child) {
 	children.push_back(child);
+
+	// Handle Special Cases
+	switch (type) {
+	case OP_MAX:
+	case OP_SMAX:
+		setVisible(true, false);
+		break;
+	}
+}
+
+void NodeCPU::setVisible(bool visible, bool updateChildren) {
+	if (hasObject()) {
+		PrimNodeGPU* node = objectManager->nodeData.getPrimNode(gpuArrIndex);
+		node->visible = visible;
+		objectManager->nodeData.setPrimNode(gpuArrIndex, node);
+	}
+	else {
+		OpNodeGPU* node = objectManager->nodeData.getOpNode(gpuArrIndex);
+		node->visible = visible;
+		objectManager->nodeData.setOpNode(gpuArrIndex, node);
+	}
+
+	if (updateChildren) {
+		for (auto& child : children) {
+			child->setVisible(visible, true);
+		}
+	}
 }

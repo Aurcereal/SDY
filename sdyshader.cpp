@@ -65,31 +65,14 @@ void SDYShader::setupObjectUBOs() {
 
 void SDYShader::uniformOpNodeCount(int count) {
 	use();
+	std::cout << "u_OpNodeCount: " << count << std::endl;
 	uniformInt("u_OpNodeCount", count);
 }
-
-//void SDYShader::uniformPrimNodeCount(int count) {
-//	use();
-//	uniformInt("u_PrimNodeCount", count);
-//}
 
 void SDYShader::uniformParamCount(SDNodeType type, int count) {
 	use();
 	uniformInt(paramToCountUniform[type], count);
 }
-
-//void SDYShader::uniformOperationCount(int newOperationCount) {
-//	use();
-//	uniformInt("u_OperationCount", newOperationCount);
-//	operationCount = newOperationCount;
-//}
-//
-//void SDYShader::uniformObjectCount(int newObjectCount, SDNodeType type) {
-//	use();
-//	assert(primToCountUniform.count(type) != 0);
-//	uniformInt(primToCountUniform[type], newObjectCount);
-//	objectCounts[type] = newObjectCount;
-//}
 
 void SDYShader::setParamData(int i, SDNodeType type, void* data) {
 	assert(paramUBOHandles.count(type) != 0);

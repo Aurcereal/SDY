@@ -55,6 +55,7 @@ struct OpNode {
 	int parentIndex;
 	int arrIndex;
 	int operationType;
+	bool visible;
 };
 
 struct PrimNode {
@@ -64,6 +65,7 @@ struct PrimNode {
 	int operationType;
 	int distortionIndex;
 	float boundingBoxMult;
+	bool visible;
 };
 
 layout (std140) uniform OpNodesBlock {

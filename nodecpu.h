@@ -42,6 +42,7 @@ public:
 
 	//
 	void addChild(NodeCPU*);
+	void setVisible(bool visible, bool updateChildren);
 
 	//
 	string name;

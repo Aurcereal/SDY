@@ -36,30 +36,44 @@ struct ObjectAccessor {
 	int index;
 };
 
+// Later can recompile to change size of this arr (change the #define); can start small and when cross certain thresholds gets larger like ArrayList
 float dists[MAXSEARCHSIZE];
 ObjectAccessor searchStack[MAXSEARCHSIZE];
 int searchStackSize;
 
-float debugVal;
+bool opCanExist[16];
+bool what[2];
 
 vec2 fillSearchStack(vec3 ro, vec3 rd) {
-	// first calculate bounding box dim, then try buffering it in
-	// youngest child setting the parent thing won't work blindly here, may have to set something here in the shader cuz youngest child may be dead
-	// but hey distance array can be shorter if i cant figure smth out
-
 	vec2 searchBounds = vec2(MAXDIST, 0.0);
 	searchStackSize = 0;
 
+	for(int i=0; i<u_OpNodeCount; i++) {
+		switch(u_OpNodes.nodes[i].operationType) {
+			case OP_MAX:
+			case OP_SMAX:
+			opCanExist[i] = true;
+			break;
+
+			case OP_MIN:
+			case OP_SMIN:
+			opCanExist[i] = false;
+			break;
+		}
+	}
+
 	for(int i=0; i<u_SphereCount; i++) {
 		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_SPHERE];
+		if(!node.visible) continue;
 		Sphere s = u_Spheres.spheres[node.arrIndex];
 
-		vec3 lro = (node.invTransform * vec4(ro,1.)).xyz; //ro + vec3(vec4(node.invTransform[3].xyz, 0.0) * node.invTransform );
-		vec3 lrd = normalize((node.invTransform * vec4(rd, 0.)).xyz);
+		vec3 lro = (node.invTransform * vec4(ro,1.)).xyz;
+		vec3 lrd = (node.invTransform * vec4(rd, 0.)).xyz;
 		vec3 boxDim = vec3(2.0*s.r) * node.boundingBoxMult;
 
 		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
-		if(ts.x <= ts.y && ts.y >= 0.0) {
+		bool hit = ts.x <= ts.y && ts.y >= 0.0;
+		if(hit) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_SPHERE;
 			searchStack[searchStackSize] = accessor;
@@ -67,19 +81,34 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 
 			searchBounds.x = min(ts.x, searchBounds.x);
 			searchBounds.y = max(ts.y, searchBounds.y);
+
+		}
+
+		switch(u_OpNodes.nodes[node.parentIndex].operationType) {
+			case OP_MAX:
+			case OP_SMAX:
+			opCanExist[node.parentIndex] = opCanExist[node.parentIndex] && hit;
+			break;
+
+			case OP_MIN:
+			case OP_SMIN:
+			opCanExist[node.parentIndex] = opCanExist[node.parentIndex] || hit;
+			break;
 		}
 	}
 
 	for(int i=0; i<u_BoxCount; i++) {
 		PrimNode node = u_PrimNodes.nodes[PRIMCOUNT * i + PRIM_BOX];
+		if(!node.visible) continue;
 		Box b = u_Boxes.boxes[node.arrIndex];
 
 		vec3 lro = (node.invTransform * vec4(ro, 1.)).xyz;
-		vec3 lrd = normalize((node.invTransform * vec4(rd, 0.)).xyz);
+		vec3 lrd = (node.invTransform * vec4(rd, 0.)).xyz;
 		vec3 boxDim = b.dim * node.boundingBoxMult;
 
 		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
-		if(ts.x <= ts.y && ts.y >= 0.0) {
+		bool hit = ts.x <= ts.y && ts.y >= 0.0;
+		if(hit) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_BOX;
 			searchStack[searchStackSize] = accessor;
@@ -87,6 +116,35 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 
 			searchBounds.x = min(ts.x, searchBounds.x);
 			searchBounds.y = max(ts.y, searchBounds.y);
+		}
+
+		switch(u_OpNodes.nodes[node.parentIndex].operationType) {
+			case OP_MAX:
+			case OP_SMAX:
+			opCanExist[node.parentIndex] = opCanExist[node.parentIndex] && hit;
+			break;
+
+			case OP_MIN:
+			case OP_SMIN:
+			opCanExist[node.parentIndex] = opCanExist[node.parentIndex] || hit;
+			break;
+		}
+	}
+
+	for(int i=u_OpNodeCount-1; i>=1; i--) {
+		int parentIndex = u_OpNodes.nodes[i].parentIndex;
+		if(parentIndex == -1) continue;
+		bool exist = opCanExist[i];
+		switch(u_OpNodes.nodes[parentIndex].operationType) {
+			case OP_MAX:
+			case OP_SMAX:
+			opCanExist[parentIndex] = opCanExist[parentIndex] && exist;
+			break;
+
+			case OP_MIN:
+			case OP_SMIN:
+			opCanExist[parentIndex] = opCanExist[parentIndex] || exist;
+			break;
 		}
 	}
 
@@ -96,10 +154,11 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 float sdOperationStack(vec3 p) {
 	for(int i=0; i<u_OpNodeCount; i++) {
 		// later mabe use bit slicing operations where a bit can correspond to min or max and another bit can correpsond to smooth or not
-		dists[i] = u_OpNodes.nodes[i].operationType <= -3 ? -MAXDIST : MAXDIST;
+		dists[i] = u_OpNodes.nodes[i].operationType <= -3 ? -NULLMAXDIST : NULLMAXDIST;
 	}
 
 	for(int i=searchStackSize-1; i>=0; i--) {
+		// If prim is on the stack it's def visible
 		ObjectAccessor accessor = searchStack[i];
 		PrimNode node = u_PrimNodes.nodes[accessor.index];
 		int parentIndex = node.parentIndex;
@@ -127,13 +186,20 @@ float sdOperationStack(vec3 p) {
 			case OP_SMIN:
 				dists[parentIndex] = smin(dists[parentIndex], sd, u_SMins.smins[parentNode.arrIndex].smoothness);
 				break;
+			case OP_MAX:
+				dists[parentIndex] = max(dists[parentIndex], sd);
+				break;
+			case OP_SMAX:
+				dists[parentIndex] = smax(dists[parentIndex], sd, u_SMaxes.smaxes[parentNode.arrIndex].smoothness);
+				break;
 		}
 	}
 
 	for(int i=u_OpNodeCount-1; i>=0; i--) {
 		OpNode n = u_OpNodes.nodes[i];
+		bool exist = opCanExist[i] && n.visible;
 
-		if(n.parentIndex != -1) {
+		if(exist && n.parentIndex != -1 && abs(dists[i]) < NULLMAXDIST) { // Possible floating point errs?
 			OpNode parentNode = u_OpNodes.nodes[n.parentIndex];
 			switch(parentNode.operationType) {
 				case OP_MIN:
@@ -141,6 +207,12 @@ float sdOperationStack(vec3 p) {
 					break;
 				case OP_SMIN:
 					dists[n.parentIndex] = smin(dists[n.parentIndex], dists[i], u_SMins.smins[parentNode.arrIndex].smoothness);
+					break;
+				case OP_MAX:
+					dists[n.parentIndex] = max(dists[n.parentIndex], dists[i]);
+					break;
+				case OP_SMAX:
+					dists[n.parentIndex] = smax(dists[n.parentIndex], dists[i], u_SMaxes.smaxes[parentNode.arrIndex].smoothness);
 					break;
 			}
 		}
@@ -190,7 +262,6 @@ vec3 render(vec2 p) {
 ///
 
 void main() {
-	debugVal = 0.0;
 	vec2 p = (gl_FragCoord.xy/(1.0*u_ScreenDimensions))*2.0-1.0;
 	vec3 col = render(p);
 

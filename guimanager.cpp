@@ -25,12 +25,12 @@ bool GUIManager::drawNode(NodeCPU* node) {
 }
 
 void GUIManager::recursiveDrawTree(NodeCPU* node) {
-	if (drawNode(node) && !node->isLeaf()) {
+	if (drawNode(node)) {
 		for (NodeCPU* child : node->children) {
 			recursiveDrawTree(child);
 		}
+		ImGui::TreePop();
 	}
-	ImGui::TreePop();
 }
 
 void GUIManager::drawImGuiElements(const Camera& camera) {

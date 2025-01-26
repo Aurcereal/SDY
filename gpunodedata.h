@@ -11,6 +11,7 @@ struct OpNodeGPU {
 	int parentIndex;
 	int arrIndex;
 	int operationType;
+	bool visible = true;
 };
 
 struct PrimNodeGPU {
@@ -20,6 +21,7 @@ struct PrimNodeGPU {
 	int operationType;
 	int distortionIndex;
 	float boundingBoxMult = 1.0f;
+	bool visible = true; // We know this is 32-bit in shader, but be careful in C++ it's like platform dependent or some shit, can just use an int honestly
 };
 
 struct GPUNodeData {
