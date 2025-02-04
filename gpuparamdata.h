@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 #include "helperinclude.h"
 #include <unordered_map>
 #include <vector>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "shader.h"
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 #include <array>
 
 using namespace std;

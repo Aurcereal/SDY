@@ -3,7 +3,7 @@
 #include "helperinclude.h"
 #include <vector>
 #include "sdyshader.h"
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 #include "eulerentity.h"
 #include "nodecpu.h"
 

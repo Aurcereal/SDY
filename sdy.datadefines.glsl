@@ -12,7 +12,12 @@
 #define OP_SMIN -2
 #define OP_MAX -3
 #define OP_SMAX -4
-#define OPCOUNT 4
+
+#define SPOP_TWIST -5
+#define SPOP_MIRROR -6
+#define SPOP_REPEAT -7
+#define SPOP_PINCH -8
+#define SPOP_NOP -9
 
 #define SDNodeType int
 

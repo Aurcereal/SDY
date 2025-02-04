@@ -2,7 +2,7 @@
 
 #include "paramcpu.h"
 #include "helperinclude.h"
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 #include "eulerentity.h"
 #include "objectmanager.h"
 #include <vector>

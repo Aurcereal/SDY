@@ -1,5 +1,5 @@
 #include "game.h"
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 
 Game::Game(GLFWwindow* window, InputBundle* input) : window(window), cameraEnabled(true), input(input), camera(input), gl(), objectManager(&gl.shader), guiManager(&objectManager) {}
 

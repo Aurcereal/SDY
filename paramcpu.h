@@ -1,7 +1,7 @@
 #pragma once
 
 #include "helperinclude.h"
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 #include <vector>
 #include <string>
 

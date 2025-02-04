@@ -1,4 +1,4 @@
-#include "sdydatadefines.glsl"
+#include "sdy.datadefines.glsl"
 
 struct Min {
 	float a;
@@ -6,19 +6,33 @@ struct Min {
 struct Max {
 	float a;
 };
-
 struct SMin {
 	float smoothness;
 };
 struct SMax {
 	float smoothness;
 };
+
 struct Sphere {
 	float r;
 	// int material index or smth (on SDObject?), have material index file u can also include in cpp, dotted walk over floor spec display mat or smth idk
 };
 struct Box {
 	vec3 dim;
+};
+
+struct Twist {
+	float intensity;
+};
+struct Mirror {
+	float a;
+};
+struct Repeat {
+	vec3 repDim;
+	ivec3 repBounds;
+};
+struct Pinch {
+	float intensity; // idk lol
 };
 
 layout (std140) uniform MinsBlock {
@@ -51,28 +65,3 @@ layout (std140) uniform BoxesBlock {
 } u_Boxes;
 uniform int u_BoxCount;
 
-struct OpNode {
-	int parentIndex;
-	int arrIndex;
-	int operationType;
-	bool visible;
-};
-
-struct PrimNode {
-	mat4 invTransform;
-	int parentIndex;
-	int arrIndex;
-	int operationType;
-	int distortionIndex;
-	float boundingBoxMult;
-	bool visible;
-};
-
-layout (std140) uniform OpNodesBlock {
-	OpNode nodes[ELEMCOUNT];
-} u_OpNodes;
-uniform int u_OpNodeCount;
-
-layout (std140) uniform PrimNodesBlock {
-	PrimNode nodes[ELEMCOUNT*PRIMCOUNT];
-} u_PrimNodes;

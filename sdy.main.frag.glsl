@@ -25,9 +25,10 @@ uniform ivec2 u_ScreenDimensions;
 #define PI 3.141592
 #define TAU (2.0*PI)
 
-#include "raymarchdefines.glsl"
+#include "sdy.raymarchdefines.glsl"
 
-#include "primitives.glsl"
+#include "sdy.paramdata.glsl"
+#include "sdy.nodedata.glsl"
 
 #include "common.glsl"
 
@@ -48,7 +49,7 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 	vec2 searchBounds = vec2(MAXDIST, 0.0);
 	searchStackSize = 0;
 
-	for(int i=0; i<u_OpNodeCount; i++) {
+	for(int i=0; i<u_OpNodeCount; i++) { // inaccurate method since consider object child of max child of another max
 		switch(u_OpNodes.nodes[i].operationType) {
 			case OP_MAX:
 			case OP_SMAX:
@@ -225,7 +226,7 @@ float sdf(vec3 p) {
 	return sdOperationStack(p);
 }
 
-#include "raymarching.glsl"
+#include "sdy.raymarching.glsl"
 
 vec3 normal(vec3 p) {
 	vec2 ep = vec2(NORMEPS, 0.0);
