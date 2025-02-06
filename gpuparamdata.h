@@ -32,6 +32,24 @@ struct SMax {
 	inline SMax() : smoothness(0.5f) {}
 };
 
+struct Twist {
+	float intensity;
+	inline Twist() : intensity(1.0f) {}
+};
+struct Mirror {
+	inline Mirror() {}
+};
+struct Repeat {
+	vec3 repDim;
+	int dummy;
+	vec3 repCount;
+	inline Repeat() : repDim(1.0f), repCount(3.0f) {}
+};
+struct Pinch {
+	float intensity;
+	inline Pinch() : intensity(1.0f) {}
+};
+
 class GPUParamData {
 private:
 	ObjectManager* objectManager;
@@ -40,8 +58,14 @@ private:
 	vector<Max> maxOps;
 	vector<SMin> sminOps;
 	vector<SMax> smaxOps;
+
 	vector<Sphere> spheres;
 	vector<Box> boxes;
+
+	vector<Twist> twistSpops;
+	vector<Mirror> mirrorSpops;
+	vector<Repeat> repeatSpops;
+	vector<Pinch> pinchSpops;
 
 	dict<SDNodeType, int> paramCount;
 

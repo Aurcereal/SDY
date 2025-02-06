@@ -13,9 +13,25 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 {
 
 	int paramInd = param.getGpuIndex();
-	gpuArrIndex = type >= 0 ?
-		objectManager->nodeData.pushPrimNode(parent->gpuArrIndex, paramInd, type, 0) :
-		objectManager->nodeData.pushOpNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
+	nodeClass = isPrimNode(type) ? PRIM :
+				isOpNode(type) ? OP :
+				SPOP;
+
+	switch (nodeClass) {
+	case PRIM: {
+		assert(parent != nullptr);
+		gpuArrIndex = objectManager->nodeData.pushPrimNode(parent->gpuArrIndex, paramInd, 0, type);
+		break;
+	}
+	case OP: {
+		gpuArrIndex = objectManager->nodeData.pushOpNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
+		break;
+	}
+	case SPOP: {
+		gpuArrIndex = objectManager->nodeData.pushSpopNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
+		break;
+	}
+	}
 
 	recomputeBoundingBoxMults();
 
@@ -36,7 +52,7 @@ void NodeCPU::recomputeBoundingBoxMults() {
 		child->recomputeBoundingBoxMults();
 
 	// BBX Mult only goes on GPU if it's an object
-	if (hasObject()) {
+	if (nodeClass == PRIM) {
 		PrimNodeGPU* obj = objectManager->nodeData.getPrimNode(gpuArrIndex);
 		obj->boundingBoxMult = boundingBoxMult;
 		objectManager->nodeData.setPrimNode(gpuArrIndex, obj);
@@ -61,11 +77,21 @@ void NodeCPU::recomputeWorldTransforms() {
 		child->recomputeWorldTransforms();
 	}
 
-	// Transform only goes on the GPU if it's an object
-	if (hasObject()) {
+	// Transform only goes on the GPU if it's a prim or spop
+	switch (nodeClass) {
+	case PRIM: {
 		PrimNodeGPU* obj = objectManager->nodeData.getPrimNode(gpuArrIndex);
 		obj->invTransform = invWorldTransform;
 		objectManager->nodeData.setPrimNode(gpuArrIndex, obj);
+		break;
+	}
+	case SPOP: {
+		SpopNodeGPU* obj = objectManager->nodeData.getSpopNode(gpuArrIndex);
+		obj->invWorldTransform = invWorldTransform;
+		obj->worldTransform = worldTransform;
+		objectManager->nodeData.setSpopNode(gpuArrIndex, obj);
+		break;
+	}
 	}
 }
 const mat4& NodeCPU::getWorldTransform() const {
@@ -115,15 +141,23 @@ void NodeCPU::addChild(NodeCPU* child) {
 }
 
 void NodeCPU::setVisible(bool visible, bool updateChildren) {
-	if (hasObject()) {
+	switch (nodeClass) {
+	case PRIM: {
 		PrimNodeGPU* node = objectManager->nodeData.getPrimNode(gpuArrIndex);
 		node->visible = visible;
 		objectManager->nodeData.setPrimNode(gpuArrIndex, node);
+		break;
 	}
-	else {
+	case OP: {
 		OpNodeGPU* node = objectManager->nodeData.getOpNode(gpuArrIndex);
 		node->visible = visible;
 		objectManager->nodeData.setOpNode(gpuArrIndex, node);
+		break;
+	}
+	case SPOP: {
+
+		break;
+	}
 	}
 
 	if (updateChildren) {

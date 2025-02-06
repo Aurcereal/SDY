@@ -46,17 +46,13 @@ public:
 	friend class NodeCPU; friend class ParamCPU;
 	friend class GPUParamData;  friend class GPUNodeData;
 
-	static ivec2 opNodeByteSize;
-	static ivec2 primNodeByteSize;
-
 	ObjectManager(SDYShader*);
 
 	NodeCPU* root; // always a MIN OP
 
 	static string getDefaultName(SDNodeType);
 
-	NodeCPU* addObject(NodeCPU* parent, SDNodeType, vec3 pos, vec3 euler, vec3 scale);
-	NodeCPU* addOperation(NodeCPU* parent, SDNodeType type, vec3 pos, vec3 euler, vec3 scale);
+	NodeCPU* addNode(NodeCPU* parent, SDNodeType type, vec3 pos, vec3 euler, vec3 scale);
 
 	static ivec2 getStructSize(SDNodeType);
 

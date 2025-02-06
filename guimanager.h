@@ -24,6 +24,7 @@ private:
 	//
 	bool tryAddObject(SDNodeType);
 	bool tryAddOperation(SDNodeType);
+	bool tryAddSpaceOperation(SDNodeType);
 public:
 	void setWidgetsActive(bool);
 

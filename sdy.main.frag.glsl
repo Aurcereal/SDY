@@ -223,6 +223,12 @@ float sdOperationStack(vec3 p) {
 }
 
 float sdf(vec3 p) {
+	if(u_SpopNodeCount > 0) {
+		SpopNode node = u_SpopNodes.nodes[0];
+		p = vec3(node.invTransform * vec4(p, 1.0));
+		p.xy = rotate(p.xy, smoothstep(10., 5., length(p)) * p.z*0.25);
+		p = vec3(node.transform * vec4(p, 1.0));
+	}
 	return sdOperationStack(p);
 }
 

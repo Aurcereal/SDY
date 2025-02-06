@@ -1,13 +1,10 @@
 #include "objectmanager.h"
 #include "imguizmo/ImGuizmo.h"
 
-ivec2 ObjectManager::opNodeByteSize = ivec2(sizeof(float) * 4, sizeof(vec4));
-ivec2 ObjectManager::primNodeByteSize = ivec2(sizeof(float) * 22, sizeof(vec4) * 6);
-
 ObjectManager::ObjectManager(SDYShader* shader) : shader(shader), root(nullptr), nodeData(this), paramData(this) {}
 
 void ObjectManager::init() {
-	root = addOperation(nullptr, OP_MIN, vec3(0.0f), vec3(0.0f), vec3(1.0f));
+	root = addNode(nullptr, OP_MIN, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 }
 
 dict<SDNodeType, ivec2> ObjectManager::byteSizeMap = {
@@ -17,16 +14,27 @@ dict<SDNodeType, ivec2> ObjectManager::byteSizeMap = {
 	{OP_SMAX, ivec2(4, sizeof(vec4))},
 
 	{PRIM_SPHERE, ivec2(4, 16)},
-	{PRIM_BOX, ivec2(12, 16) }
+	{PRIM_BOX, ivec2(12, 16) },
+
+	{SPOP_TWIST, ivec2(sizeof(float) * 1, sizeof(float) * 4)},
+	{SPOP_MIRROR, ivec2(sizeof(float) * 0, sizeof(float) * 4)},
+	{SPOP_REPEAT, ivec2(sizeof(float) * 7, sizeof(float) * 8)},
+	{SPOP_PINCH, ivec2(sizeof(float) * 1, sizeof(float) * 4)}
 };
 
 dict<SDNodeType, string> ObjectManager::defaultNameMap = {
 	{PRIM_SPHERE, "Sphere"},
 	{PRIM_BOX, "Box"},
+
 	{OP_MIN, "Union"},
 	{OP_SMIN, "Smooth Union"},
 	{OP_MAX, "Intersection"},
-	{OP_SMAX, "Smooth Intersection"}
+	{OP_SMAX, "Smooth Intersection"},
+
+	{SPOP_TWIST, "Twist"},
+	{SPOP_MIRROR, "Mirror"},
+	{SPOP_REPEAT, "Repeat"},
+	{SPOP_PINCH, "Pinch"}
 };
 
 ivec2 ObjectManager::getStructSize(SDNodeType type) {
@@ -34,20 +42,7 @@ ivec2 ObjectManager::getStructSize(SDNodeType type) {
 	return byteSizeMap[type];
 }
 
-NodeCPU* ObjectManager::addObject(NodeCPU* parent, SDNodeType type, vec3 pos, vec3 euler, vec3 scale) {
-	parent = parent == nullptr ? root : parent;
-
-	nodes.push_back(mkU<NodeCPU>(this, parent, type));
-	NodeCPU* node = nodes[nodes.size() - 1].get();
-	parent->addChild(node);
-
-	node->setLocalPosEulerScale(pos, euler, scale);
-
-	return node;
-}
-NodeCPU* ObjectManager::addOperation(NodeCPU* parent, SDNodeType type, vec3 pos, vec3 euler, vec3 scale) {
-	assert(type < 0);
-
+NodeCPU* ObjectManager::addNode(NodeCPU* parent, SDNodeType type, vec3 pos, vec3 euler, vec3 scale) {
 	nodes.push_back(mkU<NodeCPU>(this, parent, type));
 	NodeCPU* node = nodes[nodes.size() - 1].get();
 	if(parent != nullptr) parent->addChild(node);

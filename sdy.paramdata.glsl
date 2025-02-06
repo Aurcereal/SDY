@@ -29,7 +29,7 @@ struct Mirror {
 };
 struct Repeat {
 	vec3 repDim;
-	ivec3 repBounds;
+	vec3 repCount;
 };
 struct Pinch {
 	float intensity; // idk lol
@@ -55,6 +55,7 @@ layout (std140) uniform SMaxesBlock {
 } u_SMaxes;
 uniform int u_SMaxCount;
 
+
 layout (std140) uniform SpheresBlock {
 	Sphere spheres[ELEMCOUNT];
 } u_Spheres;
@@ -65,3 +66,23 @@ layout (std140) uniform BoxesBlock {
 } u_Boxes;
 uniform int u_BoxCount;
 
+
+layout (std140) uniform TwistsBlock {
+	Twist twists[ELEMCOUNT];
+} u_Twists;
+uniform int u_TwistCount;
+
+layout (std140) uniform MirrorsBlock {
+	Mirror mirrors[ELEMCOUNT];
+} u_Mirrors;
+uniform int u_MirrorCount;
+
+layout (std140) uniform RepeatsBlock {
+	Repeat repeats[ELEMCOUNT];
+} u_Repeats;
+uniform int u_RepeatCount;
+
+layout (std140) uniform PinchesBlock {
+	Pinch pinches[ELEMCOUNT];
+} u_Pinches;
+uniform int u_PinchCount;

@@ -11,12 +11,14 @@ private:
 	dict<SDNodeType, uint> paramUBOHandles;
 	uint opNodesUBOHandle;
 	uint primNodesUBOHandle;
+	uint spopNodesUBOHandle;
 
 	static dict<SDNodeType, string> paramToCountUniform;
 	static dict<SDNodeType, string> paramToBlockName;
 	static string opNodesBlockName;
 	static string primNodesBlockName;
-	static array<SDNodeType, 6> paramTypes;
+	static string spopNodesBlockName;
+	static array<SDNodeType, 10> paramTypes;
 
 	
 public:
@@ -24,9 +26,12 @@ public:
 	void setupObjectUBOs();
 
 	void setParamData(int i, SDNodeType, void* data);
+
 	void setOpNodeData(int i, void* data);
+	void setSpopNodeData(int i, void* data);
 	void setPrimNodeData(int i, void* data);
 
 	void uniformOpNodeCount(int);
+	void uniformSpopNodeCount(int);
 	void uniformParamCount(SDNodeType, int);
 };

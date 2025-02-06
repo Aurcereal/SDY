@@ -51,9 +51,7 @@ public:
 	SDNodeType type;
 	int gpuArrIndex;
 
-	// rn isLeaf() == hasObject()
 	inline bool isLeaf() const { return children.empty(); }
-	inline bool hasObject() const { return type >= 0; }
 
 	//
 	inline void onUpdateParam() { if (type == OP_SMIN) recomputeBoundingBoxMults(); }
@@ -62,4 +60,16 @@ public:
 
 	//
 	ParamCPU param;
+
+	//
+	inline static bool isPrimNode(SDNodeType type) { return type >= 0; }
+	inline static bool isOpNode(SDNodeType type) { return type <= -1 && type >= -4; }
+	inline static bool isSpopNode(SDNodeType type) { return type <= -5; }
+
+	enum NodeClass {
+		PRIM,
+		OP,
+		SPOP
+	};
+	NodeClass nodeClass;
 };

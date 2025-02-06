@@ -27,7 +27,11 @@ void GPUParamData::setParamData(SDNodeType type, int i, void* data) {
 		i = i == -1 ? boxes.size() - 1 : i;
 		boxes[i] = *((Box*)data);
 		break;
-	default:
+	case SPOP_TWIST:
+		i = 1 == -1 ? twistSpops.size() - 1 : i;
+		twistSpops[i] = *((Twist*)data);
+		break;
+	default: // TODO: other spops
 		assert(false);
 		break;
 	}
@@ -50,12 +54,15 @@ void GPUParamData::updateParamDataOnGPU(SDNodeType type, int i) {
 		data = &spheres[i]; break;
 	case PRIM_BOX:
 		data = &boxes[i]; break;
+	case SPOP_TWIST:
+		data = &twistSpops[i]; break;
+		break;
 	default:
 		assert(false);
 		break;
 	}
 
-	objectManager->shader->setParamData(i, type, data);
+	objectManager->shader->setParamData(i, type, data); // unoptimal who cares for now
 }
 
 int GPUParamData::pushDefaultParamData(SDNodeType type) {
@@ -96,6 +103,11 @@ int GPUParamData::pushDefaultParamData(SDNodeType type) {
 		i = boxes.size() - 1;
 		data = &boxes[boxes.size() - 1];
 		break;
+	case SPOP_TWIST:
+		twistSpops.push_back(Twist());
+		i = twistSpops.size() - 1;
+		data = &twistSpops[twistSpops.size() - 1];
+		break;
 	default:
 		assert(false);
 		break;
@@ -126,6 +138,9 @@ void* GPUParamData::getParamData(SDNodeType type, int i) {
 		break;
 	case PRIM_BOX:
 		return &boxes[i];
+		break;
+	case SPOP_TWIST:
+		return &twistSpops[i];
 		break;
 	default:
 		assert(false);

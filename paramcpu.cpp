@@ -30,6 +30,22 @@ void ParamCPU::initInputFields() {
 			inputFields.push_back(InputField("Smoothness", InputField::FLOAT, &smax->smoothness));
 			break;
 		}
+		case SPOP_TWIST: {
+			Twist* twist = (Twist*)data;
+			inputFields.push_back(InputField("Intensity", InputField::FLOAT, &twist->intensity));
+			break;
+		}
+		case SPOP_REPEAT: {
+			Repeat* repeat = (Repeat*)data;
+			inputFields.push_back(InputField("Grid Cell Size", InputField::VEC3, &repeat->repDim));
+			inputFields.push_back(InputField("Repetition Count", InputField::VEC3, &repeat->repCount));
+			break;
+		}
+		case SPOP_PINCH: {
+			Pinch* pinch = (Pinch*)data;
+			inputFields.push_back(InputField("Intensity", InputField::FLOAT, &pinch->intensity));
+			break;
+		}
 	}
 }
 

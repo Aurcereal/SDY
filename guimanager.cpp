@@ -47,18 +47,26 @@ void GUIManager::drawImGuiElements(const Camera& camera) {
 }
 
 bool GUIManager::tryAddObject(SDNodeType type) {
-	assert(type >= 0);
+	assert(NodeCPU::isPrimNode(type));
 	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
-	if (parentNode->type >= 0) return false;
-	selectedNode = objectManager->addObject(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
+	if (NodeCPU::isPrimNode(parentNode->type) >= 0) return false;
+	selectedNode = objectManager->addNode(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 	return true;
 }
 
 bool GUIManager::tryAddOperation(SDNodeType type) {
-	assert(type < 0);
+	assert(NodeCPU::isOpNode(type));
 	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
-	if (parentNode->type >= 0) return false;
-	selectedNode = objectManager->addOperation(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
+	if (NodeCPU::isPrimNode(parentNode->type)) return false;
+	selectedNode = objectManager->addNode(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
+	return true;
+}
+
+bool GUIManager::tryAddSpaceOperation(SDNodeType type) {
+	assert(NodeCPU::isSpopNode(type));
+	NodeCPU* parentNode = selectedNode != nullptr ? selectedNode : objectManager->root;
+	if (NodeCPU::isPrimNode(parentNode->type)) return false;
+	selectedNode = objectManager->addNode(parentNode, type, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 	return true;
 }
 
@@ -95,6 +103,19 @@ void GUIManager::drawMenuBar() {
 			}
 		}
 
+		if (ImGui::BeginMenu("Add Space Operation")) {
+			array<bool, 1> addSpopToggles;
+			addSpopToggles.fill(false);
+
+			ImGui::MenuItem("Twist", nullptr, &addSpopToggles[0]);
+			ImGui::EndMenu();
+
+			for (int i = 0; i < addSpopToggles.size(); ++i) {
+				if(addSpopToggles[i])
+					tryAddSpaceOperation(-5 - i);
+			}
+		}
+
 		ImGui::EndMenuBar();
 	}
 }
@@ -125,7 +146,7 @@ void GUIManager::drawGizmos(const Camera &camera) {
 		mat4 transform = selectedNode->getWorldTransform();
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj),
-			currOperation, ImGuizmo::WORLD, glm::value_ptr(transform));
+			currOperation, ImGuizmo::WORLD, glm::value_ptr(transform)); // Should be able to choose btwn world and local with hotkey
 
 		if (ImGuizmo::IsUsing()) {
 			selectedNode->setWorldTransform(transform);
@@ -146,6 +167,7 @@ void GUIManager::drawObjectEditorPanel() {
 
 		vec3 p, e, s;
 		selectedNode->getLocalPosEulerScale(&p, &e, &s);
+		e *= 180.0f / PI;
 
 		float pos[3] = { p.x, p.y, p.z };
 		float euler[3] = { e.x, e.y, e.z };
@@ -157,7 +179,7 @@ void GUIManager::drawObjectEditorPanel() {
 		transformChanged |= ImGui::InputFloat3("Scale", scale);
 
 		if (transformChanged)
-			selectedNode->setLocalPosEulerScale(vec3(pos[0], pos[1], pos[2]), vec3(euler[0], euler[1], euler[2]), vec3(scale[0], scale[1], scale[2]));
+			selectedNode->setLocalPosEulerScale(vec3(pos[0], pos[1], pos[2]), vec3(euler[0], euler[1], euler[2]) * PI/180.0f, vec3(scale[0], scale[1], scale[2]));
 
 		bool paramsChanged = false;
 

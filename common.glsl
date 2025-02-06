@@ -13,6 +13,10 @@ float smax(float d1, float d2, float k) {
 	return max(d1, d2) - h;
 }
 
+vec2 rotate(vec2 v, float o) {
+	return mat2(cos(o), sin(o), -sin(o), cos(o)) * v;
+}
+
 // SDFs
 float sdBox(vec3 p, vec3 dim) {
 	p = abs(p) - dim*.5;

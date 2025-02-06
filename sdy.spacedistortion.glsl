@@ -1,5 +1,4 @@
 // Later make sizes Defines
-SpaceOpNode spaceNodes[32];
 vec3 distortedPs[6];
 
 void calculatePs(vec3 p) {
@@ -8,7 +7,7 @@ void calculatePs(vec3 p) {
     int currInsertionIndex = 0;
 
     for(int i=0; i<32; i++) {
-        SpaceOpNode node = spaceNodes[i];
+        SpopNode node = u_SpopNodes.nodes[i];
         switch(node.operationType) {
             case SPOP_NOP:
             distortedPs[currInsertionIndex] = cp;

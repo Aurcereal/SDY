@@ -1,10 +1,3 @@
-struct SpaceOpNode {
-	mat4 invTransform;  // maybe also store transform since we pop in, distort, and pop out usually?
-	int parentIndex;
-	int arrIndex;
-	int operationType;
-};
-
 struct OpNode {
 	int parentIndex;
 	int arrIndex;
@@ -22,6 +15,14 @@ struct PrimNode {
 	bool visible;
 };
 
+struct SpopNode {
+	mat4 invTransform;
+	mat4 transform;
+	int parentIndex;
+	int arrIndex;
+	int operationType;
+};
+
 layout (std140) uniform OpNodesBlock {
 	OpNode nodes[ELEMCOUNT];
 } u_OpNodes;
@@ -30,3 +31,8 @@ uniform int u_OpNodeCount;
 layout (std140) uniform PrimNodesBlock {
 	PrimNode nodes[ELEMCOUNT*PRIMCOUNT];
 } u_PrimNodes;
+
+layout (std140) uniform SpopNodesBlock {
+	SpopNode nodes[ELEMCOUNT];
+} u_SpopNodes;
+uniform int u_SpopNodeCount;

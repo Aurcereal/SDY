@@ -1,38 +1,40 @@
 #include "gpunodedata.h"
 #include "objectmanager.h"
 
-void GPUNodeData::setOpNode(int i, OpNodeGPU* node) { gpuInternalNodes[i] = *node; objectManager->shader->setOpNodeData(i, node); }
-void GPUNodeData::setPrimNode(int i, PrimNodeGPU* node) { gpuLeafNodes[i] = *node; objectManager->shader->setPrimNodeData(i, node); }
-OpNodeGPU* GPUNodeData::getOpNode(int i) { return &gpuInternalNodes[i]; }
-PrimNodeGPU* GPUNodeData::getPrimNode(int i) { return &gpuLeafNodes[i]; }
+ivec2 GPUNodeData::opNodeByteSize = ivec2(sizeof(float) * 4, sizeof(vec4));
+ivec2 GPUNodeData::primNodeByteSize = ivec2(sizeof(float) * 22, sizeof(vec4) * 6);
+ivec2 GPUNodeData::spopNodeByteSize = ivec2(sizeof(float) * 35, sizeof(float) * 36);
+
+void GPUNodeData::setOpNode(int i, OpNodeGPU* node) { gpuOpNodes[i] = *node; objectManager->shader->setOpNodeData(i, node); }
+void GPUNodeData::setPrimNode(int i, PrimNodeGPU* node) { gpuPrimNodes[i] = *node; objectManager->shader->setPrimNodeData(i, node); }
+void GPUNodeData::setSpopNode(int i, SpopNodeGPU* node) { gpuSpopNodes[i] = *node; objectManager->shader->setSpopNodeData(i, node); }
+OpNodeGPU* GPUNodeData::getOpNode(int i) { return &gpuOpNodes[i]; }
+PrimNodeGPU* GPUNodeData::getPrimNode(int i) { return &gpuPrimNodes[i]; }
+SpopNodeGPU* GPUNodeData::getSpopNode(int i) { return &gpuSpopNodes[i]; }
 
 int GPUNodeData::pushOpNode(int parentIndex, int arrIndex, SDNodeType type) {
 	nodeCount[type]++;
-	gpuInternalNodes.push_back(OpNodeGPU());
-	OpNodeGPU& node = gpuInternalNodes[gpuInternalNodes.size() - 1];
-	node.parentIndex = parentIndex;
-	node.arrIndex = arrIndex;
-	node.operationType = type;
-	objectManager->shader->setOpNodeData(gpuInternalNodes.size() - 1, &node);
-	objectManager->shader->uniformOpNodeCount(gpuInternalNodes.size());
-	return gpuInternalNodes.size() - 1;
+	gpuOpNodes.push_back(OpNodeGPU(parentIndex, arrIndex, type));
+	objectManager->shader->setOpNodeData(gpuOpNodes.size() - 1, &gpuOpNodes[gpuOpNodes.size()-1]);
+	objectManager->shader->uniformOpNodeCount(gpuOpNodes.size());
+	return gpuOpNodes.size() - 1;
 }
 
-int GPUNodeData::pushPrimNode(int parentIndex, int arrIndex, SDNodeType type, int distortionIndex) {
+int GPUNodeData::pushPrimNode(int parentIndex, int arrIndex, int distortionIndex, SDNodeType type) {
 	int countOfType = nodeCount[type];// objectManager->paramData.getCount(type);
 	nodeCount[type]++;
 	int placementIndex = primIndexToInterleavedIndex(countOfType, type);
-	if (placementIndex >= gpuLeafNodes.size()) gpuLeafNodes.resize(placementIndex + 1);
+	if (placementIndex >= gpuPrimNodes.size()) gpuPrimNodes.resize(placementIndex + 1);
 
-	gpuLeafNodes[placementIndex] = PrimNodeGPU();
-	PrimNodeGPU& node = gpuLeafNodes[placementIndex];
-	node.parentIndex = parentIndex;
-	node.arrIndex = arrIndex;
-	node.operationType = type;
-	node.distortionIndex = distortionIndex;
-	node.invTransform = mat4(1.0f);
-	node.boundingBoxMult = 1.0f;
-
-	objectManager->shader->setPrimNodeData(placementIndex, &node);
+	gpuPrimNodes[placementIndex] = PrimNodeGPU(parentIndex, arrIndex, distortionIndex, type);
+	objectManager->shader->setPrimNodeData(placementIndex, &gpuPrimNodes[placementIndex]);
 	return placementIndex;
+}
+
+int GPUNodeData::pushSpopNode(int parentIndex, int arrIndex, SDNodeType type) {
+	nodeCount[type]++;
+	gpuSpopNodes.push_back(SpopNodeGPU(parentIndex, arrIndex, type));
+	objectManager->shader->setSpopNodeData(gpuSpopNodes.size() - 1, &gpuSpopNodes[gpuSpopNodes.size() - 1]);
+	objectManager->shader->uniformSpopNodeCount(gpuSpopNodes.size());
+	return gpuSpopNodes.size() - 1;
 }
