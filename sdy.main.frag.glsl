@@ -21,6 +21,7 @@ uniform ivec2 u_ScreenDimensions;
 ///
 
 //#define VISUALIZEBOUNDINGBOX
+//#define USEBOUNDINGBOX
 
 #define PI 3.141592
 #define TAU (2.0*PI)
@@ -73,7 +74,11 @@ vec2 fillSearchStack(vec3 ro, vec3 rd) {
 		vec3 boxDim = vec3(2.0*s.r) * node.boundingBoxMult;
 
 		vec2 ts = rayBoxIntersect(lro, 1./lrd, boxDim);
+		#ifdef USEBOUNDINGBOX
 		bool hit = ts.x <= ts.y && ts.y >= 0.0;
+		#else
+		bool hit = true;
+		#endif
 		if(hit) {
 			ObjectAccessor accessor;
 			accessor.index = PRIMCOUNT * i + PRIM_SPHERE;
@@ -226,7 +231,7 @@ float sdf(vec3 p) {
 	if(u_SpopNodeCount > 0) {
 		SpopNode node = u_SpopNodes.nodes[0];
 		p = vec3(node.invTransform * vec4(p, 1.0));
-		p.xy = rotate(p.xy, smoothstep(10., 5., length(p)) * p.z*0.25);
+		p.xy = rotate(p.xy, smoothstep(5., 2., length(p)) * p.z*0.25);
 		p = vec3(node.transform * vec4(p, 1.0));
 	}
 	return sdOperationStack(p);

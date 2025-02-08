@@ -3,7 +3,7 @@
 
 ivec2 GPUNodeData::opNodeByteSize = ivec2(sizeof(float) * 4, sizeof(vec4));
 ivec2 GPUNodeData::primNodeByteSize = ivec2(sizeof(float) * 22, sizeof(vec4) * 6);
-ivec2 GPUNodeData::spopNodeByteSize = ivec2(sizeof(float) * 35, sizeof(float) * 36);
+ivec2 GPUNodeData::spopNodeByteSize = ivec2(sizeof(float) * 34, sizeof(float) * 36);
 
 void GPUNodeData::setOpNode(int i, OpNodeGPU* node) { gpuOpNodes[i] = *node; objectManager->shader->setOpNodeData(i, node); }
 void GPUNodeData::setPrimNode(int i, PrimNodeGPU* node) { gpuPrimNodes[i] = *node; objectManager->shader->setPrimNodeData(i, node); }
@@ -31,9 +31,9 @@ int GPUNodeData::pushPrimNode(int parentIndex, int arrIndex, int distortionIndex
 	return placementIndex;
 }
 
-int GPUNodeData::pushSpopNode(int parentIndex, int arrIndex, SDNodeType type) {
+int GPUNodeData::pushSpopNode(int arrIndex, SDNodeType type) {
 	nodeCount[type]++;
-	gpuSpopNodes.push_back(SpopNodeGPU(parentIndex, arrIndex, type));
+	gpuSpopNodes.push_back(SpopNodeGPU(arrIndex, type));
 	objectManager->shader->setSpopNodeData(gpuSpopNodes.size() - 1, &gpuSpopNodes[gpuSpopNodes.size() - 1]);
 	objectManager->shader->uniformSpopNodeCount(gpuSpopNodes.size());
 	return gpuSpopNodes.size() - 1;

@@ -43,7 +43,7 @@ private:
 	
 public:
 	friend class GUIManager;
-	friend class NodeCPU; friend class ParamCPU;
+	friend class NodeCPU; friend class ParamCPU; friend class SpopManagerCPU;
 	friend class GPUParamData;  friend class GPUNodeData;
 
 	ObjectManager(SDYShader*);

@@ -28,7 +28,7 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 		break;
 	}
 	case SPOP: {
-		gpuArrIndex = objectManager->nodeData.pushSpopNode(parent != nullptr ? parent->gpuArrIndex : -1, paramInd, type);
+		assimilateSelfIntoGPUSpopTree(paramInd);//gpuArrIndex = objectManager->nodeData.pushSpopNode(paramInd, type);
 		break;
 	}
 	}

@@ -11,7 +11,7 @@ void Game::init() {
 
 	NodeCPU* un = objectManager.addNode(objectManager.root, OP_MIN, vec3(0.0f), vec3(0.0f), vec3(1.0f));
 	objectManager.addNode(objectManager.root, PRIM_SPHERE, vec3(0.0f, 5.0f, 0.0f), vec3(1.0f, 0.0f,0.0f), vec3(1.0f));
-	for(int i=0; i<50; i++)
+	for(int i=0; i<7; i++)
 		objectManager.addNode(un, PRIM_SPHERE, vec3(2.0f+i, 5.0f, 0.0f), vec3(0.0f), vec3(1.0f));
 }
 

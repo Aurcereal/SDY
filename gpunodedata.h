@@ -31,11 +31,10 @@ struct PrimNodeGPU {
 struct SpopNodeGPU {
 	mat4 invWorldTransform;
 	mat4 worldTransform;
-	int parentIndex;
 	int arrIndex;
 	int operationType;
-	inline SpopNodeGPU(int parentIndex, int arrIndex, SDNodeType type) : 
-		parentIndex(parentIndex), arrIndex(arrIndex), operationType(type), invWorldTransform(1.0f), worldTransform(1.0f) {}
+	inline SpopNodeGPU(int arrIndex, SDNodeType type) : 
+		arrIndex(arrIndex), operationType(type), invWorldTransform(1.0f), worldTransform(1.0f) {}
 };
 
 struct GPUNodeData {
@@ -62,7 +61,7 @@ public:
 
 	int pushOpNode(int parentIndex, int arrIndex, SDNodeType opType);
 	int pushPrimNode(int parentIndex, int arrIndex, int distortionIndex, SDNodeType type); // Created w/Identity Transform
-	int pushSpopNode(int parentIndex, int arrIndex, SDNodeType type);
+	int pushSpopNode(int arrIndex, SDNodeType type);
 
 	static ivec2 opNodeByteSize;
 	static ivec2 primNodeByteSize;

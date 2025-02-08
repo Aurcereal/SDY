@@ -24,6 +24,7 @@ private:
 	bool transformChildren;
 public:
 	friend class GUIManager;
+	friend class SpopManagerCPU;
 
 	NodeCPU(ObjectManager*, const NodeCPU* parent, SDNodeType);
 
@@ -72,4 +73,7 @@ public:
 		SPOP
 	};
 	NodeClass nodeClass;
+
+	// Later can do inheritance on NodeCPU for Op Prim Spop, it's becoming worth it
+	void assimilateSelfIntoGPUSpopTree(int paramInd);
 };

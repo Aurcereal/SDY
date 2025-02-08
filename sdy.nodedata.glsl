@@ -18,7 +18,6 @@ struct PrimNode {
 struct SpopNode {
 	mat4 invTransform;
 	mat4 transform;
-	int parentIndex;
 	int arrIndex;
 	int operationType;
 };
