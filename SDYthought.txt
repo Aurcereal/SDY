@@ -1,0 +1,21 @@
+- BFS/DFS BBX Discoverer Pass
+- DFS rendering pass
+
+Can combine into
+- DFS rendering pass along with discovering BBX along the way, stopping if BBX fails
+- DFS using the parent offset method from Utkarsh
+
+How does this work with spacial distortion?
+	Since we're going down the tree not up the tree in our DFS path stack we can also store the points of each so we don't have to prebake the branches like before
+
+-=-=-=-=-=-
+Also writeup stuff for the buffering of data how that's organized
+Simple Change Node or Param Data function
+And a rebuffer tree func cuz you gotta rebuffer tree function whenever you add or moving smth around in hierarchy
+
+-=-=-=-=-=-
+ParamData stays the same afaik
+NodeData turns into the tree with SPOPS and stuff... SPOPS seem very similar at least in paramdata and maybe even in nodedata too, just the classification is different is all.  SPOP, BOP (boolean op), PRIM
+
+-=-=-=-
+Utkarsh SDF editor very useful resource
