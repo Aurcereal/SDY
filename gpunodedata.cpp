@@ -31,10 +31,10 @@ int GPUNodeData::pushPrimNode(int parentIndex, int arrIndex, int distortionIndex
 	return placementIndex;
 }
 
-int GPUNodeData::pushSpopNode(int arrIndex, SDNodeType type) {
-	nodeCount[type]++;
-	gpuSpopNodes.push_back(SpopNodeGPU(arrIndex, type));
-	objectManager->shader->setSpopNodeData(gpuSpopNodes.size() - 1, &gpuSpopNodes[gpuSpopNodes.size() - 1]);
-	objectManager->shader->uniformSpopNodeCount(gpuSpopNodes.size());
-	return gpuSpopNodes.size() - 1;
-}
+//int GPUNodeData::pushSpopNode(int arrIndex, SDNodeType type) {
+//	nodeCount[type]++;
+//	gpuSpopNodes.push_back(SpopNodeGPU(arrIndex, type));
+//	objectManager->shader->setSpopNodeData(gpuSpopNodes.size() - 1, &gpuSpopNodes[gpuSpopNodes.size() - 1]);
+//	objectManager->shader->uniformSpopNodeCount(gpuSpopNodes.size());
+//	return gpuSpopNodes.size() - 1;
+//}

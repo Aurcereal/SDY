@@ -9,9 +9,11 @@
 
 #include "gpunodedata.h"
 #include "gpuparamdata.h"
+#include "spopmanagercpu.h"
 
 class GPUNodeData;
 class GPUParamData;
+class SpopManagerCPU;
 class NodeCPU;
 
 // work on this after u have parenting transforms in place
@@ -40,7 +42,7 @@ private:
 	//
 	GPUNodeData nodeData;
 	GPUParamData paramData;
-	
+	SpopManagerCPU spopManager;
 public:
 	friend class GUIManager;
 	friend class NodeCPU; friend class ParamCPU; friend class SpopManagerCPU;

@@ -61,7 +61,7 @@ public:
 
 	int pushOpNode(int parentIndex, int arrIndex, SDNodeType opType);
 	int pushPrimNode(int parentIndex, int arrIndex, int distortionIndex, SDNodeType type); // Created w/Identity Transform
-	int pushSpopNode(int arrIndex, SDNodeType type);
+	//int spopNodeArrayAllocateUpToSize(int branchIndex, int withinBranchIndex);
 
 	static ivec2 opNodeByteSize;
 	static ivec2 primNodeByteSize;

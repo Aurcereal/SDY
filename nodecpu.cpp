@@ -28,7 +28,7 @@ NodeCPU::NodeCPU(ObjectManager* objectManager, const NodeCPU* parent, SDNodeType
 		break;
 	}
 	case SPOP: {
-		assimilateSelfIntoGPUSpopTree(paramInd);//gpuArrIndex = objectManager->nodeData.pushSpopNode(paramInd, type);
+		gpuArrIndex = objectManager->spopManager.assimilateNewSpopNode(this, paramInd);
 		break;
 	}
 	}
@@ -166,3 +166,13 @@ void NodeCPU::setVisible(bool visible, bool updateChildren) {
 		}
 	}
 }
+
+//void NodeCPU::assimilateSelfIntoGPUSpopTree(int paramInd) {
+//	if (parent->children.size() > 1) {
+//		// We're branching off
+//	}
+//	else {
+//		// We're continuing a single branch
+//	}
+//	//gpuArrIndex = objectManager->nodeData.pushSpopNode(paramInd, type);
+//}

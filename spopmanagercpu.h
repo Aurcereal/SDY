@@ -1,15 +1,21 @@
 #pragma once
 
 #include "helperinclude.h"
+#include <unordered_map>
 
 class NodeCPU;
+class ObjectManager;
 
 class SpopManagerCPU {
-public:
-	void assimilateNewSpopNode(NodeCPU*); // must be SPOP
-	void getDistortionIndex(NodeCPU*); // must not be SPOP: it's in the middle of a branch
 private:
+	vector<int> branchStartIndices;
 	ObjectManager* objectManager;
-	dict<NodeCPU*, int> spopNodeToDistortionIndex;
-	//GPUSPopData gpuSpopData; // dont think this is necessary, just use series of push and set and get commands on gpunodedata
+	dict<const NodeCPU*, int> spopNodeToDistortionIndex;
+	
+	vector<vector<const NodeCPU*>> branches;
+
+	int gpuSetBranchElem(int branchIndex, int withinBranchIndex, int paramInd, NodeCPU*);
+public:
+	int assimilateNewSpopNode(NodeCPU*, int paramInd); // must be SPOP
+	int getDistortionIndex(const NodeCPU*);
 };

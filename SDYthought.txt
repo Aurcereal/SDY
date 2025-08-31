@@ -19,3 +19,84 @@ NodeData turns into the tree with SPOPS and stuff... SPOPS seem very similar at 
 
 -=-=-=-
 Utkarsh SDF editor very useful resource
+
+
+
+
+-=-=-=-=-=-
+ObjectManager
+
+Holds all the other managers and helpers
+Holds the root node which forms the full node tree with spops and all
+
+
+
+
+-=-=-=-=-=-
+TreeFilter
+
+Takes in a full tree with spop nodes, prim nodes, and op nodes and can filter down to either only ops and prims or only spops
+Can also give ops and prims 'pointers' to the spop nodes they use
+Can store the filtered versions for easy access
+-=-=-=-=-
+TreeFlattener
+
+Takes in an arb tree of nodes or whatever (maybe use generics if we really have to and can't use NodeCPU*)
+and turns it into parent offset format
+-=-=-=-=-=-
+Low-level GPU stuff shouldn't be specific to SDY, most modifications and additions shouldn't require modifying the low level stuff
+Because of this... (look below)
+
+-=-=-=-=-=-
+GPUArrayBuffer
+
+Takes in an array and some necessary specifications (important names and IDs to link up to GPU) and creates gpu buffer
+Interface similar to unity computebuffer (setdata and stuff)
+
+
+
+
+-=-=-=-=-
+SpopManagerCPU
+
+Takes in spop tree, flattens it into array
+Can also take in a spop node pointer and give its index in flattened array (useful for ops to know what point to use)
+Uses tree filter to get flattened array or smth
+
+-=-=-=-=-
+SpopManagerGPU
+
+Buffers flattened spop tree to gpu
+
+-=-=-=-=-=-
+NodeDataGPU
+
+Buffers flattened node tree to gpu
+
+
+
+ParamDataGPU
+-=-=-=-=-=-
+
+Stores vectors of params
+Can allocate a param (pushDefaultParamData) and return its address (index)
+Can get paramdata data pointer
+Can set paramdata in gpu
+The NodeCPU will use this.. (paramdatagpu is a bit weird compared to other stuff..)
+
+
+-=-=-=-=-
+SDFHelperCPU
+
+SampleSDF(SDNodeType, void* paramData, vec3 p)
+
+-=-=-=-=-
+SDFSamplerCPU
+
+Allows sampling of sdfs on the cpu, mainly used by bounding box manager
+SampleSDF(NodeCPU*, vec3 p)
+
+-=-=-=-=-
+Bounding Box Manager
+
+Creates bounding boxes for nodes using SDFSamplerCPU, can use multithreading and iteratively increase precision later
