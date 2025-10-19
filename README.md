@@ -8,7 +8,7 @@ Right now, it supports adding and transforming different types of primitives, as
 
 ![](ShowcaseMedia/show1.png)
 
-In order for the raymarcher to render many objects on the scene at once, I added bounding boxes: each ray that's sent out from the camera will only sample the SDFs of objects whose bounding box it intersects.  This saves a lot of time that would be lost if the ray spent a lot of time sampling many objects it could never intersect.
+In order for the raymarcher to render many objects on the scene at once, I added bounding boxes: each ray that's sent out from the camera will only sample the SDFs of objects whose bounding box it intersects.  This saves a lot of time that would be lost if the ray spent time sampling objects it will never intersect with.
 
 | ![](ShowcaseMedia/show2.png) | ![](ShowcaseMedia/show2BBX.png) | 
 |:--:|:--:|
