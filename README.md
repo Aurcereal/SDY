@@ -19,6 +19,3 @@ I plan on
 - Image Based Lighting?
 - Pathtraced Rendering?
 - Allowing the export of the SDFs as OBJs
-
-SDFs would allow the user to manipulate geometry in ways that aren’t so easy with traditional mesh modeling: boolean functions are easy (smooth intersections and unions) and by distorting space, you can get some pretty cool results.  So I started working on this project in my free time over winter break.
-I also want to experiment with making some sort of raymarched 3D platformer.  I may use the SDF itself for collision, or I could use marching cubes to generate a collision mesh and use some collision engine.  Additionally, after making a path tracer in one of my current classes, I’d want to add the ability to output path traced images to this project in the future.
