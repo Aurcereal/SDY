@@ -12,7 +12,7 @@ In order for the raymarcher to render many objects on the scene at once, I added
 
 | ![](ShowcaseMedia/show2.png) | ![](ShowcaseMedia/show2BBX.png) | 
 |:--:|:--:|
-| Without Bounding Boxes Visaulized | With Bounding Boxes Visualized | 
+| Without Bounding Boxes Visualized | With Bounding Boxes Visualized | 
 
 ## Future Plans
 I plan on...
